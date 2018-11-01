@@ -34,8 +34,9 @@ def infix_to_postfix(sentence):
     return output
 
 
-def get_expression_tree(postfix):
+def get_expression_tree(sentence, truth_values):
     stack = []
+    postfix = infix_to_postfix(sentence)
     postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg), postfix)
     postfix = list(postfix)
 
@@ -43,6 +44,7 @@ def get_expression_tree(postfix):
 
     for node in postfix:
         if isinstance(node, Argument):
+            node.value = truth_values[node.arg]
             stack.append(node)
         else:
             if node.op == ConnectiveType.NOT.value:
@@ -60,10 +62,7 @@ def get_expression_tree(postfix):
 
 
 def main():
-    postfix = infix_to_postfix('not A and not B or not C')
-    print(postfix)
-    root = get_expression_tree(postfix)
-    print(RenderTree(root))
+    pass
 
 
 if __name__ == '__main__':

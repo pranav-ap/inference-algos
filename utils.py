@@ -43,8 +43,9 @@ class Operator(NodeMixin):
 
 # Represents a single value argument
 class Argument(NodeMixin):
-    def __init__(self, arg, parent=None):
+    def __init__(self, arg, value=None, parent=None):
         self.arg = arg
+        self.value = value
         self.parent = parent
 
     def get_type(self):
