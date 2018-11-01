@@ -2,11 +2,9 @@ from knowledge_base import KnowledgeBase
 from parsers import extract_preposition_symbols
 
 
-def pl_true(exp, model):
+def is_pl_true(exp, model):
     if exp in (True, False):
         return exp
-
-    pass
 
 
 def check_if_entails(kb, alpha):
@@ -18,8 +16,8 @@ def check_if_entails(kb, alpha):
 
 def check_all(kb, alpha, symbols, model):
     if not symbols:
-        if pl_true(kb, model):
-            return pl_true(alpha, model)
+        if is_pl_true(kb, model):
+            return is_pl_true(alpha, model)
         return True
 
     p = symbols.pop()

@@ -17,6 +17,9 @@ class ConnectiveType(Enum):
     BIDIRECTIONAL = '<=>'
 
 
+connectives = [x[1].value for x in ConnectiveType.__members__.items()]
+
+
 logical_precedence = {
     ConnectiveType.NOT.value: 5,
     ConnectiveType.AND.value: 4,
@@ -31,9 +34,21 @@ class Operator(NodeMixin):
         self.op = str(op)
         self.parent = parent
 
+    def get_type(self):
+        return ConnectiveType(self.op)
+
+    def __repr__(self):
+        return 'Operator : {}'.format(self.op)
+
 
 # Represents a single value argument
 class Argument(NodeMixin):
     def __init__(self, arg, parent=None):
         self.arg = arg
         self.parent = parent
+
+    def get_type(self):
+        return 'hi'
+
+    def __repr__(self):
+        return 'Argument : {}'.format(self.arg)

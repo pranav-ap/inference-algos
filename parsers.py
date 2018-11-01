@@ -1,9 +1,8 @@
-from utils import ConnectiveType, logical_precedence
+from utils import Operator, Argument, logical_precedence, connectives, ConnectiveType
+from anytree import RenderTree
 
 
 def extract_preposition_symbols(sentence):
-    connectives = [x[1].value for x in ConnectiveType.__members__.items()]
-
     symbols = [s.lower() for s in sentence.split(' ')]
     symbols = [s for s in symbols if s not in connectives]
     return symbols
@@ -12,9 +11,6 @@ def extract_preposition_symbols(sentence):
 def infix_to_postfix(sentence):
     stack = []
     output = []
-
-    # operators are arranged according to decreasing priority
-    connectives = [x[1].value for x in ConnectiveType.__members__.items()]
 
     for token in sentence.split(' '):
         if token not in connectives:
@@ -38,8 +34,36 @@ def infix_to_postfix(sentence):
     return output
 
 
+def get_expression_tree(postfix):
+    stack = []
+    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg), postfix)
+    postfix = list(postfix)
+
+    root = postfix[-1]
+
+    for node in postfix:
+        if isinstance(node, Argument):
+            stack.append(node)
+        else:
+            if node.op == ConnectiveType.NOT.value:
+                arg = stack.pop()
+                arg.parent = node
+            else:
+                arg1 = stack.pop()
+                arg1.parent = node
+                arg2 = stack.pop()
+                arg2.parent = node
+
+            stack.append(node)
+
+    return root
+
+
 def main():
-    print(infix_to_postfix('not A and not B or C'))
+    postfix = infix_to_postfix('not A and not B or not C')
+    print(postfix)
+    root = get_expression_tree(postfix)
+    print(RenderTree(root))
 
 
 if __name__ == '__main__':
