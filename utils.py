@@ -30,8 +30,9 @@ logical_precedence = {
 
 
 class Operator(NodeMixin):
-    def __init__(self, op, parent=None):
+    def __init__(self, op, value=None, parent=None):
         self.op = str(op)
+        self.value = value
         self.parent = parent
 
     def __repr__(self):

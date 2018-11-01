@@ -36,14 +36,14 @@ def infix_to_postfix(sentence):
 def get_expression_tree(sentence, truth_values):
     stack = []
     postfix = infix_to_postfix(sentence)
-    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg, value=truth_values[arg]), postfix)
+    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg, value=truth_values.get(arg, None)), postfix)
     postfix = list(postfix)
 
     root = postfix[-1]
 
     for node in postfix:
         if isinstance(node, Argument):
-            node.value = truth_values[node.arg]
+            node.value = truth_values.get(node.arg, None)
             stack.append(node)
         else:
             if node.op == ConnectiveType.NOT.value:
