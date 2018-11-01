@@ -6,13 +6,14 @@ from copy import deepcopy
 
 
 def is_pl_true(sentence, model):
-    root = get_expression_tree(sentence, model)
+    root = get_expression_tree(sentence)
 
     execution_order = [node for node in LevelOrderIter(root)]
     execution_order.reverse()
 
     for node in execution_order:
         if node.is_leaf:
+            node.value = model.get(node.arg)
             continue
 
         if node.op == ConnectiveType.NOT.value:
@@ -28,23 +29,22 @@ def is_pl_true(sentence, model):
 def check_all(kb, alpha, symbols, model):
     if not symbols:
         if all(is_pl_true(s, model) for s in kb.sentences):
-            print(model)
-            return is_pl_true(alpha, model)
+            print('model {} satisfies kb'.format(model))
+            res = is_pl_true(alpha, model)
+            print('does it satisfy alpha : {}'.format(res))
+            return res
         return True
 
     p = symbols.pop()
 
     model1 = deepcopy(model)
-    model1[p] = False
+    model1[p] = True
 
     model2 = deepcopy(model)
-    model2[p] = True
+    model2[p] = False
 
-    return (
-            check_all(kb, alpha, symbols, model1)
-            and
-            check_all(kb, alpha, symbols, model2)
-    )
+    return check_all(kb, alpha, symbols, model1) and check_all(kb, alpha, symbols, model2)
+
 
 
 def check_if_entails(kb, alpha):
@@ -55,8 +55,8 @@ def check_if_entails(kb, alpha):
 
 def main():
     kb = KnowledgeBase()
-    kb.tell('a and b or c')
-    alpha = 'a and b'
+    kb.tell('a or b')
+    alpha = 'a'
 
     result = check_if_entails(kb, alpha)
     print('Entails ? : {}'.format(result))
