@@ -1,34 +1,5 @@
-from enum import Enum
-
-
-class ValencyType(Enum):
-    NULL = 0
-    UNARY = 1
-    BINARY = 2
-
-
-class ConnectiveType(Enum):
-    NULL = ''
-    AND = 'and'
-    OR = 'or'
-    NOT = 'not'
-    IMPLIES = '=>'
-    BIDIRECTIONAL = '<=>'
-
-
-class Expr(object):
-    def __init__(self, op, *args):
-        self.op = str(op)
-        self.args = args
-
-    def valency_type(self):
-        if len(self.args) == 1:
-            return ValencyType.UNARY
-        elif len(self.args) == 2:
-            return ValencyType.BINARY
-        else:
-            return ValencyType.NULL
-
+from utils import ConnectiveType
+from parser import Parser, extract_preposition_symbols
 
 
 class KnowledgeBase():
@@ -52,10 +23,7 @@ class KnowledgeBase():
 
 
 def main():
-    kb = KnowledgeBase()
-    kb.tell('a and b => c')
-    kb.tell('e and b => c')
-    print(kb.as_sentence())
+    pass
 
 
 
