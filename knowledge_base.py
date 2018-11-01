@@ -1,10 +1,6 @@
-from utils import ConnectiveType
-
-
 class KnowledgeBase():
-    def __init__(self, truth_values=None):
+    def __init__(self):
         self.sentences = []
-        self.truth_values = truth_values or {}
 
     def size(self):
         return len(self.sentences)
@@ -14,9 +10,6 @@ class KnowledgeBase():
 
     def retract(self, sentence):
         self.sentences.remove(sentence)
-
-    def set_truth_value(self, symbol, value):
-        self.truth_values[symbol] = value
 
 
 def main():

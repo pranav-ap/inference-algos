@@ -1,10 +1,9 @@
 from utils import Operator, Argument, logical_precedence, connectives, ConnectiveType
-from anytree import RenderTree
 
 
 def extract_preposition_symbols(sentence):
-    symbols = [s.lower() for s in sentence.split(' ')]
-    symbols = [s for s in symbols if s not in connectives]
+    symbols = {s.lower() for s in sentence.split(' ')}
+    symbols = {s for s in symbols if s not in connectives}
     return symbols
 
 
@@ -37,7 +36,7 @@ def infix_to_postfix(sentence):
 def get_expression_tree(sentence, truth_values):
     stack = []
     postfix = infix_to_postfix(sentence)
-    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg), postfix)
+    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg, value=truth_values[arg]), postfix)
     postfix = list(postfix)
 
     root = postfix[-1]

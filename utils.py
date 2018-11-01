@@ -34,9 +34,6 @@ class Operator(NodeMixin):
         self.op = str(op)
         self.parent = parent
 
-    def get_type(self):
-        return ConnectiveType(self.op)
-
     def __repr__(self):
         return 'Operator : {}'.format(self.op)
 
@@ -47,9 +44,6 @@ class Argument(NodeMixin):
         self.arg = arg
         self.value = value
         self.parent = parent
-
-    def get_type(self):
-        return 'hi'
 
     def __repr__(self):
         return 'Argument : {}'.format(self.arg)
