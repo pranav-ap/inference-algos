@@ -1,11 +1,9 @@
 from utils import ConnectiveType
-from parser import Parser, extract_preposition_symbols
 
 
 class KnowledgeBase():
     def __init__(self):
         self.sentences = []
-        # self.parser = PLParser()
 
     def size(self):
         return len(self.sentences)
@@ -24,7 +22,6 @@ class KnowledgeBase():
 
 def main():
     pass
-
 
 
 if __name__ == '__main__':

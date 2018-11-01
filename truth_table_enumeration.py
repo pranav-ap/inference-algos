@@ -1,10 +1,17 @@
 from knowledge_base import KnowledgeBase
-from parsers import extract_prepositional_symbols
-from utils import pl_true
+from parsers import extract_preposition_symbols
+
+
+def pl_true(exp, model):
+    if exp in (True, False):
+        return exp
+
+    pass
 
 
 def check_if_entails(kb, alpha):
-    symbols = extract_prepositional_symbols(kb.as_sentence()) + extract_prepositional_symbols(alpha)
+    symbols = (extract_preposition_symbols(kb.as_sentence())
+               + extract_preposition_symbols(alpha))
     model = {}
     return check_all(kb, alpha, symbols, model)
 
