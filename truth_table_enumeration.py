@@ -1,7 +1,7 @@
 from knowledge_base import KnowledgeBase
 from parsers import extract_preposition_symbols, get_expression_tree
 from anytree import LevelOrderIter
-from utils import ConnectiveType
+from utils import OperatorType
 from copy import deepcopy
 
 
@@ -10,21 +10,24 @@ def is_pl_true(sentence, model):
 
     execution_order = [node for node in LevelOrderIter(root)]
     execution_order.reverse()
+    # print(execution_order)
 
     for node in execution_order:
         if node.is_leaf:
             node.value = model.get(node.arg)
+            if node.value is None:
+                print('{} became none with the model {}'.format(node, model))
             continue
 
-        if node.op == ConnectiveType.NOT.value:
+        if node.op == OperatorType.NOT.value:
             node.value = not node.children[0].value
-        elif node.op == ConnectiveType.AND.value:
+        elif node.op == OperatorType.AND.value:
             node.value = node.children[0].value and node.children[1].value
-        elif node.op == ConnectiveType.OR.value:
+        elif node.op == OperatorType.OR.value:
             node.value = node.children[0].value or node.children[1].value
-        elif node.op == ConnectiveType.IMPLIES.value:
+        elif node.op == OperatorType.IMPLIES.value:
             node.value = not node.children[0].value or node.children[1].value
-        elif node.op == ConnectiveType.BIDIRECTIONAL.value:
+        elif node.op == OperatorType.BIDIRECTIONAL.value:
             node.value = node.children[0].value == node.children[1].value
 
     return root.value
@@ -47,7 +50,11 @@ def check_all(kb, alpha, symbols, model):
     model2 = deepcopy(model)
     model2[p] = False
 
-    return check_all(kb, alpha, symbols, model1) and check_all(kb, alpha, symbols, model2)
+    return (
+            check_all(kb, alpha, deepcopy(symbols), model1)
+            and
+            check_all(kb, alpha, deepcopy(symbols), model2)
+    )
 
 
 def check_if_entails(kb, alpha):
@@ -59,8 +66,8 @@ def check_if_entails(kb, alpha):
 def main():
     kb = KnowledgeBase()
     kb.tell('not p11')
-    kb.tell('b11 <=> (p12 or p21)')
-    kb.tell('b21 <=> (p11 or p22 or p31)')
+    kb.tell('b11 <=> ( p12 or p21 )')
+    kb.tell('b21 <=> ( p11 or p22 or p31 )')
     kb.tell('not b11')
     kb.tell('b21')
 

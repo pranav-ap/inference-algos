@@ -8,24 +8,28 @@ class ValencyType(Enum):
     BINARY = 2
 
 
-class ConnectiveType(Enum):
+class OperatorType(Enum):
     NULL = ''
     AND = 'and'
     OR = 'or'
     NOT = 'not'
     IMPLIES = '=>'
     BIDIRECTIONAL = '<=>'
+    LEFT_PARENTHESIS = '('
+    RIGHT_PARENTHESIS = ')'
 
 
-connectives = [x[1].value for x in ConnectiveType.__members__.items()]
+connectives = [x[1].value for x in OperatorType.__members__.items()]
 
 
 logical_precedence = {
-    ConnectiveType.NOT.value: 5,
-    ConnectiveType.AND.value: 4,
-    ConnectiveType.OR.value: 3,
-    ConnectiveType.IMPLIES.value: 2,
-    ConnectiveType.BIDIRECTIONAL.value: 1
+    OperatorType.NOT.value: 7,
+    OperatorType.AND.value: 6,
+    OperatorType.OR.value: 5,
+    OperatorType.LEFT_PARENTHESIS.value: 4,
+    OperatorType.RIGHT_PARENTHESIS.value: 3,
+    OperatorType.IMPLIES.value: 2,
+    OperatorType.BIDIRECTIONAL.value: 1
 }
 
 

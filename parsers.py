@@ -1,4 +1,4 @@
-from utils import Operator, Argument, logical_precedence, connectives, ConnectiveType
+from utils import Operator, Argument, logical_precedence, connectives, OperatorType
 
 
 def extract_preposition_symbols(sentence):
@@ -45,7 +45,7 @@ def get_expression_tree(sentence):
         if isinstance(node, Argument):
             stack.append(node)
         else:
-            if node.op == ConnectiveType.NOT.value:
+            if node.op == OperatorType.NOT.value:
                 arg = stack.pop()
                 arg.parent = node
             else:
