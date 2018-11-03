@@ -60,7 +60,8 @@ def get_expression_tree(sentence):
 
 
 def main():
-    pass
+    postfix = infix_to_postfix('a and b => c')
+    print(postfix)
 
 
 if __name__ == '__main__':

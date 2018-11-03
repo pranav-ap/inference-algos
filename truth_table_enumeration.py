@@ -22,6 +22,10 @@ def is_pl_true(sentence, model):
             node.value = node.children[0].value and node.children[1].value
         elif node.op == ConnectiveType.OR.value:
             node.value = node.children[0].value or node.children[1].value
+        elif node.op == ConnectiveType.IMPLIES.value:
+            node.value = not node.children[0].value or node.children[1].value
+        elif node.op == ConnectiveType.BIDIRECTIONAL.value:
+            node.value = node.children[0].value == node.children[1].value
 
     return root.value
 
@@ -46,7 +50,6 @@ def check_all(kb, alpha, symbols, model):
     return check_all(kb, alpha, symbols, model1) and check_all(kb, alpha, symbols, model2)
 
 
-
 def check_if_entails(kb, alpha):
     symbols = extract_preposition_symbols(alpha)
     symbols.update([s for sentence in kb.sentences for s in extract_preposition_symbols(sentence)])
@@ -55,8 +58,13 @@ def check_if_entails(kb, alpha):
 
 def main():
     kb = KnowledgeBase()
-    kb.tell('a or b')
-    alpha = 'a'
+    kb.tell('not p11')
+    kb.tell('b11 <=> (p12 or p21)')
+    kb.tell('b21 <=> (p11 or p22 or p31)')
+    kb.tell('not b11')
+    kb.tell('b21')
+
+    alpha = 'not p12'
 
     result = check_if_entails(kb, alpha)
     print('Entails ? : {}'.format(result))
