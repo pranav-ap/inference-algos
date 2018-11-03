@@ -10,13 +10,10 @@ def is_pl_true(sentence, model):
 
     execution_order = [node for node in LevelOrderIter(root)]
     execution_order.reverse()
-    # print(execution_order)
 
     for node in execution_order:
         if node.is_leaf:
             node.value = model.get(node.arg)
-            if node.value is None:
-                print('{} became none with the model {}'.format(node, model))
             continue
 
         if node.op == OperatorType.NOT.value:
@@ -38,22 +35,25 @@ def check_all(kb, alpha, symbols, model):
         if all(is_pl_true(s, model) for s in kb.sentences):
             print('model {} satisfies kb'.format(model))
             res = is_pl_true(alpha, model)
-            print('does it satisfy alpha : {}'.format(res))
+            print('Does it satisfy alpha ? {}'.format(res))
+            print()
             return res
         return True
 
     p = symbols.pop()
 
-    model1 = deepcopy(model)
-    model1[p] = True
+    symbols1 = deepcopy(symbols)
+    branch1 = deepcopy(model)
+    branch1[p] = True
 
-    model2 = deepcopy(model)
-    model2[p] = False
+    symbols2 = deepcopy(symbols)
+    branch2 = deepcopy(model)
+    branch2[p] = False
 
     return (
-            check_all(kb, alpha, deepcopy(symbols), model1)
+            check_all(kb, alpha, symbols1, branch1)
             and
-            check_all(kb, alpha, deepcopy(symbols), model2)
+            check_all(kb, alpha, symbols2, branch2)
     )
 
 
@@ -74,7 +74,7 @@ def main():
     alpha = 'not p12'
 
     result = check_if_entails(kb, alpha)
-    print('Entails ? : {}'.format(result))
+    print('kb entails alpha ? {}'.format(result))
 
 
 if __name__ == '__main__':

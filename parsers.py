@@ -14,15 +14,15 @@ def infix_to_postfix(sentence):
     for token in sentence.split(' '):
         if token not in connectives:
             output.append(token)
-        elif token == '(':
+        elif token == OperatorType.LEFT_PARENTHESIS.value:
             stack.append(token)
-        elif token == ')':
+        elif token == OperatorType.RIGHT_PARENTHESIS.value:
             # pop until a '(' is popped
-            while stack and stack[-1] != '(':
+            while stack and stack[-1] != OperatorType.LEFT_PARENTHESIS.value:
                 output.append(stack.pop())
             stack.pop()
         else:
-            while stack and stack[-1] != '(' and logical_precedence[token] <= logical_precedence[stack[-1]]:
+            while stack and stack[-1] != OperatorType.LEFT_PARENTHESIS.value and logical_precedence[token] <= logical_precedence[stack[-1]]:
                 output.append(stack.pop())
             stack.append(token)
 

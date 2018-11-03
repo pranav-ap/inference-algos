@@ -1,1 +1,2 @@
-# inference-strategies
+# Inference Strategies
+
