@@ -3,7 +3,23 @@ from itertools import combinations
 
 
 def get_cnf_form(sentence):
-    pass
+    clauses = [clause.trim() for clause in sentence.split('and')]
+
+    for clause in clauses:
+        if '<=>' in clause:
+            # Eliminate <=>
+            pass
+        if '=>' in clause:
+            # Eliminate =>
+            pass
+        if 'not (' in clause:
+            # Move not inwards
+            pass
+        if 'and' in clause:
+            # Apply distribution law
+            pass
+    
+    return
 
 
 def remove_dangling_connectives(sentence):
