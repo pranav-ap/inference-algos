@@ -11,6 +11,9 @@ class KnowledgeBase():
     def retract(self, sentence):
         self.sentences.remove(sentence)
 
+    def as_sentence(self):
+        return ' and '.join(self.sentences)
+
 
 def main():
     pass
