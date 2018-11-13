@@ -59,7 +59,7 @@ def get_expression_tree(sentence):
 
 def main():
     # postfix = infix_to_postfix('a and b => c')
-    postfix = get_expression_tree('( b11 <=> (p12 or p21) )')
+    postfix = get_expression_tree('( b11 <=> ( p12 or p21 ) )')
     print(postfix)
 
 
