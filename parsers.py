@@ -1,7 +1,8 @@
 from utils import (
     Operator, Argument, logical_precedence,
-    connectives, OperatorType, extract_preposition_symbols
+    connectives, OperatorType
     )
+from anytree import RenderTree
 
 
 def infix_to_postfix(sentence):
@@ -52,12 +53,13 @@ def get_expression_tree(sentence):
                 arg2.parent = node
 
             stack.append(node)
-
+    print(RenderTree(root))
     return root
 
 
 def main():
-    postfix = infix_to_postfix('a and b => c')
+    # postfix = infix_to_postfix('a and b => c')
+    postfix = get_expression_tree('( b11 <=> (p12 or p21) )')
     print(postfix)
 
 

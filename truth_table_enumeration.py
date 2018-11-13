@@ -1,7 +1,7 @@
 from knowledge_base import KnowledgeBase
-from parsers import extract_preposition_symbols, get_expression_tree
+from parsers import get_expression_tree
 from anytree import LevelOrderIter
-from utils import OperatorType
+from utils import OperatorType, extract_preposition_symbols
 from copy import deepcopy
 
 

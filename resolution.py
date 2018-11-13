@@ -1,23 +1,25 @@
 from utils import extract_preposition_symbols
+from knowledge_base import KnowledgeBase
 from itertools import combinations
 
 
 def get_cnf_form(sentence):
-    clauses = [clause.trim() for clause in sentence.split('and')]
-
-    for clause in clauses:
-        if '<=>' in clause:
-            # Eliminate <=>
-            pass
-        if '=>' in clause:
-            # Eliminate =>
-            pass
-        if 'not (' in clause:
-            # Move not inwards
-            pass
-        if 'and' in clause:
-            # Apply distribution law
-            pass
+    clauses = [clause for clause in sentence.split('and')]
+    #
+    # for clause in clauses:
+    #     if '<=>' in clause:
+    #         # Eliminate <=>
+    #         lhs, rhs = clause.split('<=>')
+    #         pass
+    #     if '=>' in clause:
+    #         # Eliminate =>
+    #         pass
+    #     if 'not (' in clause:
+    #         # Move not inwards
+    #         pass
+    #     if 'and' in clause:
+    #         # Apply distribution law
+    #         pass
     
     return
 
@@ -74,7 +76,7 @@ def pl_resolve(c1, c2):
 
 def pl_resolution(kb, alpha):
     cnf_form = get_cnf_form("{} and not {}".format(kb.as_sentence(), alpha))
-    clauses = {clause.trim() for clause in cnf_form.split('and')}
+    clauses = {clause for clause in cnf_form.split('and')}
     new = set()
 
     while True:
@@ -88,9 +90,21 @@ def pl_resolution(kb, alpha):
 
 
 def main():
-    resolvents = pl_resolve('not p21 or b11', 'not b11 or p12 or p21')
+    # resolvents = pl_resolve('not p21 or b11', 'not b11 or p12 or p21')
     # resolvents = pl_resolve('not p12 or b11', 'not b11')
-    print(resolvents)
+    # print(resolvents)
+
+    kb = KnowledgeBase()
+    kb.tell('not p11')
+    kb.tell('b11 <=> ( p12 or p21 )')
+    kb.tell('b21 <=> ( p11 or p22 or p31 )')
+    kb.tell('not b11')
+    kb.tell('b21')
+
+    alpha = 'not p12'
+
+    cnf_form = get_cnf_form("{} and not ( {} )".format(kb.as_sentence(), alpha))
+    print(cnf_form)
 
 
 if __name__ == '__main__':
