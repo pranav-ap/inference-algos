@@ -38,3 +38,9 @@ class SentenceEngine:
 
         return result
 
+    def remove_dangling_connectives(self):
+        pass
+
+    def get_expression_tree(self):
+        pass
+
