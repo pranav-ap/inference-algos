@@ -14,9 +14,9 @@ class SentenceEngine:
     
     def _tokenize(self):
         dumb_tokens = self.sentence.split(' ') + ['$']
-        previous_token = dumb_tokens.pop(0)
+        previous_token = ''
         tokens = []
-       
+    
         for current_token in dumb_tokens:
             if previous_token == '':
                 previous_token = current_token
@@ -27,11 +27,10 @@ class SentenceEngine:
                 previous_token = current_token
             elif current_token not in operators:
                 tokens.append(previous_token + ' ' + current_token)
-                previous_token == ''
+                previous_token = ''
             else:
                 tokens.append(previous_token)
                 previous_token = current_token
-            
             
         print('tokens : {}'.format(tokens))
 
