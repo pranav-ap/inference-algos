@@ -1,6 +1,7 @@
 from utils import Operator, Argument, logical_precedence, operators, OperatorType
 from anytree import RenderTree
 
+
 class SentenceEngine:
     def __init__(self, sentence):
         self.sentence = self._prepare(sentence)
@@ -9,7 +10,6 @@ class SentenceEngine:
     def _prepare(self, sentence):
         # remove extra whitespaces
         sentence = ' '.join(sentence.split(' '))
-        print(sentence)
         return sentence
     
     def _tokenize(self):
@@ -31,8 +31,6 @@ class SentenceEngine:
             else:
                 tokens.append(previous_token)
                 previous_token = current_token
-            
-        print('tokens : {}'.format(tokens))
 
         return tokens
 
@@ -61,7 +59,7 @@ class SentenceEngine:
         stack = []
         output = []
 
-        for token in self.tokens:
+        for token in self.sentence.split(' '):
             if token not in operators:
                 output.append(token)
             elif token == OperatorType.LEFT_PARENTHESIS.value:
@@ -104,17 +102,14 @@ class SentenceEngine:
 
                 stack.append(node)
         
-        print(RenderTree(root))
-        
         return root
 
 
 def main():
-    # postfix = infix_to_postfix('a and b => c')
+    # engine = SentenceEngine('a and b => c')
     engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
-    # postfix = engine.get_expression_tree()
-    # print(postfix)
-    
+    expression_tree = engine.get_expression_tree()
+    print(RenderTree(expression_tree))
 
 
 if __name__ == '__main__':
