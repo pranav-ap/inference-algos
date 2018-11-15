@@ -7,7 +7,7 @@ class SentenceEngine:
     def __init__(self, sentence):
         self.sentence = self._prepare(sentence)
         self.tokens = self._tokenize()
-        self.expression_tree = self.get_expression_tree()
+        self.expression_tree = self._get_expression_tree()
 
     def _prepare(self, sentence):
         # remove extra whitespaces
@@ -15,24 +15,23 @@ class SentenceEngine:
         return sentence
     
     def _tokenize(self):
-        dumb_tokens = self.sentence.split(' ') + ['$']
-        previous_token = ''
+        previous = ''
         tokens = []
     
-        for current_token in dumb_tokens:
-            if previous_token == '':
-                previous_token = current_token
+        for current in self.sentence.split(' ') + ['$']:
+            if previous == '':
+                previous = current
                 continue
             
-            if previous_token != OperatorType.NOT.value:
-                tokens.append(previous_token)
-                previous_token = current_token
-            elif current_token not in operators:
-                tokens.append(previous_token + ' ' + current_token)
-                previous_token = ''
+            if previous != OperatorType.NOT.value:
+                tokens.append(previous)
+                previous = current
+            elif current not in operators:
+                tokens.append(previous + ' ' + current)
+                previous = ''
             else:
-                tokens.append(previous_token)
-                previous_token = current_token
+                tokens.append(previous)
+                previous = current
 
         return tokens
 
@@ -48,11 +47,17 @@ class SentenceEngine:
         neg_symbol = self._negate(pos_symbol)
         return pos_symbol in self.tokens and neg_symbol in self.tokens
 
+    def is_disjunction(self):
+        return not 'and' in self.tokens
+
+    def is_conjunction(self):
+        return not 'or' in self.tokens
+
     def remove_pair_from_clause(self, pos_symbol):
         root = deepcopy(self.expression_tree)
 
         deathrow = findall(
-            root, 
+            root,
             filter_=lambda node: isinstance(node, Argument) and node.arg == pos_symbol)
         
         for inmate in deathrow:
@@ -102,7 +107,7 @@ class SentenceEngine:
 
         return output
 
-    def get_expression_tree(self):
+    def _get_expression_tree(self):
         stack = []
         postfix = self._infix_to_postfix()
         postfix = list(map(lambda arg: Operator(arg) if arg in operators else Argument(arg), postfix))
@@ -126,17 +131,12 @@ class SentenceEngine:
         
         return root
 
-    def is_valid(self):
-        pass
-
 
 def main():
-    engine = SentenceEngine('( b or c or b or not b or c or b )')
+    # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
+    engine = SentenceEngine('( b or c or a or not b or c or b )')
 
-    # engine = sentenceEngine('( b11 <=> ( p12 or not p21 ) )')
-    expression_tree = engine.get_expression_tree()
-    print(RenderTree(expression_tree))
-
+    print(RenderTree(engine.expression_tree))
     print(RenderTree(engine.remove_pair_from_clause('b')))
 
 
