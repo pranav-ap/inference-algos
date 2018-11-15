@@ -53,35 +53,6 @@ class SentenceEngine:
     def is_conjunction(self):
         return not 'or' in self.tokens
 
-    def remove_pair_from_clause(self, pos_symbol):
-        root = deepcopy(self.expression_tree)
-
-        deathrow = findall(
-            root,
-            filter_=lambda node: isinstance(node, Argument) and node.arg == pos_symbol)
-        
-        for inmate in deathrow:
-            if isinstance(inmate.parent, Operator) and inmate.parent.op == 'not':
-                inmate = inmate.parent
-
-            sibling = inmate.siblings[0] if inmate.siblings else None
-            inmate.parent = None
-
-            if sibling is not None:
-                if sibling.parent.is_root:
-                   sibling.parent = None
-                   root = sibling
-                elif isinstance(sibling, Operator):
-                    for child in sibling.children:
-                        child.parent = sibling.parent
-                    sibling.parent = None
-                elif isinstance(sibling, Argument):
-                    parent = sibling.parent
-                    sibling.parent = parent.parent
-                    parent.parent = None
-
-        return root
-
     def _infix_to_postfix(self):
         stack = []
         output = []
@@ -132,12 +103,49 @@ class SentenceEngine:
         return root
 
 
+class DisjunctionEngine(SentenceEngine):
+    def __init__(self, clause):
+        SentenceEngine.__init__(self, clause)
+        if not SentenceEngine.is_disjunction(self):
+            raise ValueError("Sentence is not a disjunct")
+    
+    def remove_pair_from_disjunction(self, pos_symbol):
+        root = deepcopy(self.expression_tree)
+
+        deathrow = findall(
+            root,
+            filter_=lambda node: isinstance(node, Argument) and node.arg == pos_symbol)
+        
+        for inmate in deathrow:
+            if isinstance(inmate.parent, Operator) and inmate.parent.op == 'not':
+                inmate = inmate.parent
+
+            sibling = inmate.siblings[0] if inmate.siblings else None
+            inmate.parent = None
+
+            if sibling is not None:
+                if sibling.parent.is_root:
+                   sibling.parent = None
+                   root = sibling
+                elif isinstance(sibling, Operator):
+                    for child in sibling.children:
+                        child.parent = sibling.parent
+                    sibling.parent = None
+                elif isinstance(sibling, Argument):
+                    parent = sibling.parent
+                    sibling.parent = parent.parent
+                    parent.parent = None
+
+        return root
+
+
+
 def main():
     # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
-    engine = SentenceEngine('( b or c or a or not b or c or b )')
+    engine = DisjunctionEngine('( b or c or a or not b or c or b )')
 
     print(RenderTree(engine.expression_tree))
-    print(RenderTree(engine.remove_pair_from_clause('b')))
+    print(RenderTree(engine.remove_pair_from_disjunction('b')))
 
 
 if __name__ == '__main__':
