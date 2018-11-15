@@ -132,13 +132,9 @@ class SentenceEngine:
         return root
 
     def _eliminate_bidirection(self, root):
-        tree = root
-
         deathrow = findall(
-            tree,
+            root,
             filter_=lambda node: isinstance(node, Operator) and node.op == '<=>')
-        
-        print(deathrow)
         
         for inmate in deathrow:
             subtree = Operator('and')
@@ -149,7 +145,7 @@ class SentenceEngine:
             left_implication.parent = subtree
             right_implication.parent = subtree
 
-            left, right = root.children
+            left, right = inmate.children
             left_copy, right_copy = deepcopy(left), deepcopy(right)
 
             left.parent = left_implication
@@ -160,17 +156,15 @@ class SentenceEngine:
 
             subtree.parent = inmate.parent
             if inmate.is_root:
-                tree = subtree
+                root = subtree
             else:
                 inmate.parent = None
                 
-        return tree
+        return root
     
     def _eliminate_implication(self, root):
-        tree = root
-
         deathrow = findall(
-            tree,
+            root,
             filter_=lambda node: isinstance(node, Operator) and node.op == '=>')
         
         for inmate in deathrow:
@@ -185,25 +179,43 @@ class SentenceEngine:
             subtree.parent = inmate.parent
             inmate.parent = None
 
-        return tree
+        return root
     
     def _move_not_inwards(self, root):
-        pass
+        deathrow = findall(
+            root,
+            filter_=lambda node: isinstance(node, Operator) and node.op == 'not' and isinstance(node.children[0], Operator))
+        
+        for inmate in deathrow:
+            before = inmate.parent
+            after = inmate.children[0]
+            after.parent = before
+            inmate.parent = None
+
+            for child in after.children:
+                not_node = Operator('not')
+                child.parent = not_node
+                not_node.parent = after
+            
+        return root
     
+    def _apply_distribution_law(self, root):
+        pass
+
     def to_conjunctive_normal_form(self):
         root = deepcopy(self.expression_tree)
 
         root = self._eliminate_bidirection(root)
         root = self._eliminate_implication(root)
-        # root = self._move_not_inwards(root)
-        # apply distribution law
+        root = self._move_not_inwards(root)
+        root = self._apply_distribution_law(root)
+
         return root
 
 
 def main():
     engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
     # engine = SentenceEngine('( not b or c or a or b )')
-    print(RenderTree(engine.expression_tree))
     print(RenderTree(engine.to_conjunctive_normal_form()))
 
 
