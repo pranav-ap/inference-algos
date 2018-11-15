@@ -53,8 +53,3 @@ class Argument(NodeMixin):
     def __repr__(self):
         return 'Argument : {}'.format(self.arg)
 
-
-def extract_preposition_symbols(sentence):
-    symbols = {s for s in sentence.split(' ')}
-    symbols = {s for s in symbols if s not in connectives}
-    return symbols
