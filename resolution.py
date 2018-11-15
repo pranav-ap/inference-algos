@@ -3,27 +3,6 @@ from knowledge_base import KnowledgeBase
 from itertools import combinations
 
 
-def get_cnf_form(sentence):
-    clauses = [clause for clause in sentence.split('and')]
-    #
-    # for clause in clauses:
-    #     if '<=>' in clause:
-    #         # Eliminate <=>
-    #         lhs, rhs = clause.split('<=>')
-    #         pass
-    #     if '=>' in clause:
-    #         # Eliminate =>
-    #         pass
-    #     if 'not (' in clause:
-    #         # Move not inwards
-    #         pass
-    #     if 'and' in clause:
-    #         # Apply distribution law
-    #         pass
-    
-    return
-
-
 def remove_dangling_connectives(sentence):
     # remove extra whitespaces
     sentence = ' '.join(sentence.split())

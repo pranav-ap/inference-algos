@@ -19,7 +19,7 @@ class OperatorType(Enum):
     RIGHT_PARENTHESIS = ')'
 
 
-connectives = [x[1].value for x in OperatorType.__members__.items()]
+operators = [x[1].value for x in OperatorType.__members__.items()]
 
 
 logical_precedence = {

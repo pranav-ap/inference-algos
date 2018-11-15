@@ -1,6 +1,6 @@
 from utils import (
     Operator, Argument, logical_precedence,
-    connectives, OperatorType
+    operators, OperatorType
     )
 from anytree import RenderTree
 
@@ -10,7 +10,7 @@ def infix_to_postfix(sentence):
     output = []
 
     for token in sentence.split(' '):
-        if token not in connectives:
+        if token not in operators:
             output.append(token)
         elif token == OperatorType.LEFT_PARENTHESIS.value:
             stack.append(token)
@@ -34,7 +34,7 @@ def infix_to_postfix(sentence):
 def get_expression_tree(sentence):
     stack = []
     postfix = infix_to_postfix(sentence)
-    postfix = map(lambda arg: Operator(arg) if arg in connectives else Argument(arg), postfix)
+    postfix = map(lambda arg: Operator(arg) if arg in operators else Argument(arg), postfix)
     postfix = list(postfix)
 
     root = postfix[-1]

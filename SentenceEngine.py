@@ -52,9 +52,6 @@ class SentenceEngine:
         self.tokens = [token for token in self.tokens if token not in [pos_symbol, neg_symbol]]
         self.sentence = ' '.join(self.tokens)
 
-    def remove_dangling_operators(self):
-        pass
-
     def _infix_to_postfix(self):
         stack = []
         output = []
@@ -104,10 +101,15 @@ class SentenceEngine:
         
         return root
 
+    def is_valid(self):
+        pass
+
 
 def main():
-    # engine = SentenceEngine('a and b => c')
-    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
+    engine = SentenceEngine('( a or b or c or d )')
+    # print(engine.remove_dangling_or())
+
+    # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
     expression_tree = engine.get_expression_tree()
     print(RenderTree(expression_tree))
 
