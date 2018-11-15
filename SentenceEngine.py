@@ -48,12 +48,7 @@ class SentenceEngine:
         neg_symbol = self._negate(pos_symbol)
         return pos_symbol in self.tokens and neg_symbol in self.tokens
 
-    def remove_all_occurrences_of_pair(self, pos_symbol):
-        neg_symbol = self._negate(pos_symbol)
-
-        self.tokens = [token for token in self.tokens if token not in [pos_symbol, neg_symbol]]
-        self.sentence = ' '.join(self.tokens)
-
+    def remove_pair_from_clause(self, pos_symbol):
         root = deepcopy(self.expression_tree)
 
         deathrow = findall(
@@ -61,21 +56,24 @@ class SentenceEngine:
             filter_=lambda node: isinstance(node, Argument) and node.arg == pos_symbol)
         
         for inmate in deathrow:
-            neighbor = None
-            # delete symbol
-            if isinstance(inmate.parent, Operator) and inmate.parent.op == 'or':
-                neighbor = inmate.parent.siblings[0] if inmate.parent.siblings else None
-                inmate.parent.parent = None
-            else:
-                neighbor = inmate.siblings[0] if inmate.siblings else None
-                inmate.parent = None
-            # reposition neighbor
-            if neighbor is not None:
-                if not neighbor.parent.is_root:
-                    neighbor.parent = neighbor.parent.parent
-                else:
-                    neighbor.parent = None
-                    root = neighbor
+            if isinstance(inmate.parent, Operator) and inmate.parent.op == 'not':
+                inmate = inmate.parent
+
+            sibling = inmate.siblings[0] if inmate.siblings else None
+            inmate.parent = None
+
+            if sibling is not None:
+                if sibling.parent.is_root:
+                   sibling.parent = None
+                   root = sibling
+                elif isinstance(sibling, Operator):
+                    for child in sibling.children:
+                        child.parent = sibling.parent
+                    sibling.parent = None
+                elif isinstance(sibling, Argument):
+                    parent = sibling.parent
+                    sibling.parent = parent.parent
+                    parent.parent = None
 
         return root
 
@@ -133,13 +131,13 @@ class SentenceEngine:
 
 
 def main():
-    engine = SentenceEngine('( a or b or not b or c )')
+    engine = SentenceEngine('( b or c or b or not b or c or b )')
 
-    # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
+    # engine = sentenceEngine('( b11 <=> ( p12 or not p21 ) )')
     expression_tree = engine.get_expression_tree()
     print(RenderTree(expression_tree))
 
-    print(RenderTree(engine.remove_all_occurrences_of_pair('b')))
+    print(RenderTree(engine.remove_pair_from_clause('b')))
 
 
 if __name__ == '__main__':
