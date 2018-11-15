@@ -1,11 +1,13 @@
 from utils import Operator, Argument, logical_precedence, operators, OperatorType
-from anytree import RenderTree
+from anytree import RenderTree, findall
+from copy import deepcopy
 
 
 class SentenceEngine:
     def __init__(self, sentence):
         self.sentence = self._prepare(sentence)
         self.tokens = self._tokenize()
+        self.expression_tree = self.get_expression_tree()
 
     def _prepare(self, sentence):
         # remove extra whitespaces
@@ -51,6 +53,31 @@ class SentenceEngine:
 
         self.tokens = [token for token in self.tokens if token not in [pos_symbol, neg_symbol]]
         self.sentence = ' '.join(self.tokens)
+
+        root = deepcopy(self.expression_tree)
+
+        deathrow = findall(
+            root, 
+            filter_=lambda node: isinstance(node, Argument) and node.arg == pos_symbol)
+        
+        for inmate in deathrow:
+            neighbor = None
+            # delete symbol
+            if isinstance(inmate.parent, Operator) and inmate.parent.op == 'or':
+                neighbor = inmate.parent.siblings[0] if inmate.parent.siblings else None
+                inmate.parent.parent = None
+            else:
+                neighbor = inmate.siblings[0] if inmate.siblings else None
+                inmate.parent = None
+            # reposition neighbor
+            if neighbor is not None:
+                if not neighbor.parent.is_root:
+                    neighbor.parent = neighbor.parent.parent
+                else:
+                    neighbor.parent = None
+                    root = neighbor
+
+        return root
 
     def _infix_to_postfix(self):
         stack = []
@@ -106,12 +133,13 @@ class SentenceEngine:
 
 
 def main():
-    engine = SentenceEngine('( a or b or c or d )')
-    # print(engine.remove_dangling_or())
+    engine = SentenceEngine('( a or b or not b or c )')
 
     # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
     expression_tree = engine.get_expression_tree()
     print(RenderTree(expression_tree))
+
+    print(RenderTree(engine.remove_all_occurrences_of_pair('b')))
 
 
 if __name__ == '__main__':
