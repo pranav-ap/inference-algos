@@ -48,10 +48,10 @@ class SentenceEngine:
         return pos_symbol in self.tokens and neg_symbol in self.tokens
 
     def is_disjunction(self):
-        return not 'and' in self.tokens
+        return all(not token in ['and', '=>', '<=>'] for token in self.tokens)
 
     def is_conjunction(self):
-        return not 'or' in self.tokens
+        return all(not token in ['or', '=>', '<=>'] for token in self.tokens)
 
     def _infix_to_postfix(self):
         stack = []
@@ -102,14 +102,7 @@ class SentenceEngine:
         
         return root
 
-
-class DisjunctionEngine(SentenceEngine):
-    def __init__(self, clause):
-        SentenceEngine.__init__(self, clause)
-        if not SentenceEngine.is_disjunction(self):
-            raise ValueError("Sentence is not a disjunct")
-    
-    def remove_pair_from_disjunction(self, pos_symbol):
+    def remove_pair(self, pos_symbol):
         root = deepcopy(self.expression_tree)
 
         deathrow = findall(
@@ -138,14 +131,80 @@ class DisjunctionEngine(SentenceEngine):
 
         return root
 
+    def _eliminate_bidirection(self, root):
+        tree = root
+
+        deathrow = findall(
+            tree,
+            filter_=lambda node: isinstance(node, Operator) and node.op == '<=>')
+        
+        print(deathrow)
+        
+        for inmate in deathrow:
+            subtree = Operator('and')
+            
+            left_implication = Operator('=>')
+            right_implication = Operator('=>')
+
+            left_implication.parent = subtree
+            right_implication.parent = subtree
+
+            left, right = root.children
+            left_copy, right_copy = deepcopy(left), deepcopy(right)
+
+            left.parent = left_implication
+            right.parent = left_implication
+
+            right_copy.parent = right_implication
+            left_copy.parent = right_implication
+
+            subtree.parent = inmate.parent
+            if inmate.is_root:
+                tree = subtree
+            else:
+                inmate.parent = None
+                
+        return tree
+    
+    def _eliminate_implication(self, root):
+        tree = root
+
+        deathrow = findall(
+            tree,
+            filter_=lambda node: isinstance(node, Operator) and node.op == '=>')
+        
+        for inmate in deathrow:
+            subtree = Operator('or')
+            not_node = Operator('not')
+            not_node.parent = subtree
+
+            left, right = inmate.children
+            left.parent = not_node
+            right.parent = subtree
+
+            subtree.parent = inmate.parent
+            inmate.parent = None
+
+        return tree
+    
+    def _move_not_inwards(self, root):
+        pass
+    
+    def to_conjunctive_normal_form(self):
+        root = deepcopy(self.expression_tree)
+
+        root = self._eliminate_bidirection(root)
+        root = self._eliminate_implication(root)
+        # root = self._move_not_inwards(root)
+        # apply distribution law
+        return root
 
 
 def main():
-    # engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
-    engine = DisjunctionEngine('( b or c or a or not b or c or b )')
-
+    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
+    # engine = SentenceEngine('( not b or c or a or b )')
     print(RenderTree(engine.expression_tree))
-    print(RenderTree(engine.remove_pair_from_disjunction('b')))
+    print(RenderTree(engine.to_conjunctive_normal_form()))
 
 
 if __name__ == '__main__':
