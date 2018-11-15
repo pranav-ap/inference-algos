@@ -102,7 +102,7 @@ class SentenceEngine:
         
         return root
 
-    def remove_pair(self, pos_symbol):
+    def resolve_in_clause(self, pos_symbol):
         root = deepcopy(self.expression_tree)
 
         deathrow = findall(
@@ -200,7 +200,14 @@ class SentenceEngine:
         return root
     
     def _apply_distribution_law(self, root):
-        pass
+        deathrow = findall(
+            root,
+            filter_=lambda node: isinstance(node, Operator) and node.op == 'or' 
+            and any(isinstance(n, Operator) and n.op == 'and' for n in node.children))
+
+        print(deathrow)
+
+        return root        
 
     def to_conjunctive_normal_form(self):
         root = deepcopy(self.expression_tree)
@@ -214,7 +221,7 @@ class SentenceEngine:
 
 
 def main():
-    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
+    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) and c )')
     # engine = SentenceEngine('( not b or c or a or b )')
     print(RenderTree(engine.to_conjunctive_normal_form()))
 
