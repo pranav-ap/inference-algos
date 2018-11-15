@@ -189,14 +189,21 @@ class SentenceEngine:
         for inmate in deathrow:
             before = inmate.parent
             after = inmate.children[0]
+            after.op = 'or' if after.op == 'and' else 'and'
             after.parent = before
             inmate.parent = None
 
             for child in after.children:
-                not_node = Operator('not')
-                child.parent = not_node
-                not_node.parent = after
-            
+                if isinstance(child, Operator) and child.op == 'not':
+                    temp = child.children[0]
+                    child.parent = None
+                    child = temp
+                    child.parent = after
+                else:
+                    not_node = Operator('not')
+                    not_node.parent = after
+                    child.parent = not_node
+
         return root
     
     def _apply_distribution_law(self, root):
@@ -221,7 +228,7 @@ class SentenceEngine:
 
 
 def main():
-    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) and c )')
+    engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
     # engine = SentenceEngine('( not b or c or a or b )')
     print(RenderTree(engine.to_conjunctive_normal_form()))
 
