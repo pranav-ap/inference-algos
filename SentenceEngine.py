@@ -132,54 +132,37 @@ class SentenceEngine:
         return root
 
     def _eliminate_bidirection(self, root):
-        deathrow = findall(
-            root,
-            filter_=lambda node: isinstance(node, Operator) and node.op == '<=>')
+        if not (isinstance(root, Operator) and root.op == '<=>'):
+            return root
         
-        for inmate in deathrow:
-            subtree = Operator('and')
-            
-            left_implication = Operator('=>')
-            right_implication = Operator('=>')
+        and_node = Operator('and')        
+        left_implication = Operator('=>', parent=and_node)
+        right_implication = Operator('=>', parent=and_node)
 
-            left_implication.parent = subtree
-            right_implication.parent = subtree
+        left_implication_left, left_implication_right = root.children
+        right_implication_right, right_implication_left = deepcopy(left_implication_left), deepcopy(left_implication_right)
 
-            left, right = inmate.children
-            left_copy, right_copy = deepcopy(left), deepcopy(right)
+        left_implication_left.parent = left_implication
+        left_implication_right.parent = left_implication
 
-            left.parent = left_implication
-            right.parent = left_implication
-
-            right_copy.parent = right_implication
-            left_copy.parent = right_implication
-
-            subtree.parent = inmate.parent
-            if inmate.is_root:
-                root = subtree
-            else:
-                inmate.parent = None
+        right_implication_left.parent = right_implication
+        right_implication_right.parent = right_implication
                 
-        return root
+        return and_node
     
     def _eliminate_implication(self, root):
-        deathrow = findall(
-            root,
-            filter_=lambda node: isinstance(node, Operator) and node.op == '=>')
+        if not (isinstance(root, Operator) and root.op == '=>'):
+            return root
         
-        for inmate in deathrow:
-            subtree = Operator('or')
-            not_node = Operator('not')
-            not_node.parent = subtree
+        or_node = Operator('or')
+        not_node = Operator('not')
+        not_node.parent = or_node
 
-            left, right = inmate.children
-            left.parent = not_node
-            right.parent = subtree
+        left, right = root.children
+        left.parent = not_node
+        right.parent = or_node
 
-            subtree.parent = inmate.parent
-            inmate.parent = None
-
-        return root
+        return or_node
     
     def _move_not_inwards(self, root):
         deathrow = findall(
@@ -219,9 +202,13 @@ class SentenceEngine:
     def to_conjunctive_normal_form(self):
         root = deepcopy(self.expression_tree)
 
+        print(RenderTree(root))
         root = self._eliminate_bidirection(root)
+        print(RenderTree(root))
         root = self._eliminate_implication(root)
+        print(RenderTree(root))
         root = self._move_not_inwards(root)
+        print(RenderTree(root))
         root = self._apply_distribution_law(root)
 
         return root
@@ -229,7 +216,7 @@ class SentenceEngine:
 
 def main():
     engine = SentenceEngine('( b11 <=> ( p12 or not p21 ) )')
-    # engine = SentenceEngine('( not b or c or a or b )')
+    # engine = SentenceEngine('( a and b => l )')
     print(RenderTree(engine.to_conjunctive_normal_form()))
 
 
