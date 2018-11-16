@@ -1,4 +1,4 @@
-from SentenceEngine import SentenceEngine
+from sentence_engine import SentenceEngine
 from knowledge_base import KnowledgeBase
 from utils import operators
 
@@ -7,39 +7,45 @@ def get_premise_and_conclusion(sentence):
     if '=>' in sentence:
         premise, conclusion = sentence.split('=>')
     else:
-        premise, conclusion = sentence, sentence
+        premise, conclusion = '', sentence
 
     return premise.strip(), conclusion.strip()
 
+def get_axioms(kb):
+    return {sentence for sentence in kb.sentences if len(sentence.split()) == 1}
 
 def pl_fc_entails(kb, query):
+    agenda = get_axioms(kb)
+    print('agenda : {}'.format(agenda))
+
     engine = SentenceEngine('{} and {}'.format(kb.as_sentence(), query))
-    agenda = engine.extract_proposition_symbols()
-    inferred = { symbol: False for symbol in agenda }
-    count = dict()
+    is_inferred = { symbol: False for symbol in engine.extract_proposition_symbols() }
+
+    no_of_uninferred_premise_symbols = dict()
 
     for sentence in kb.sentences:
         premise, conclusion = get_premise_and_conclusion(sentence)
-        symbol_count = sum([1 for s in premise.split() if s not in operators])
-        count[conclusion] = symbol_count
+        no_of_uninferred_premise_symbols[sentence] = sum([1 for s in premise.split() if s not in operators])
+
+    print('unresolved premise symbols for : {}'.format(no_of_uninferred_premise_symbols))
 
     while agenda:
-        p = agenda.pop()
-        if p == query:
+        symbol = agenda.pop()
+        if symbol == query:
             return True
 
-        if inferred[p]:
+        if is_inferred[symbol]:
             continue
-
-        inferred[p] = True
 
         for sentence in kb.sentences:
             premise, conclusion = get_premise_and_conclusion(sentence)
-            if p in premise:
-                count[conclusion] -= 1
-                if count[conclusion] == 0:
-                    agenda.add(conclusion.strip())
+            if symbol in premise:
+                no_of_uninferred_premise_symbols[sentence] -= 1
+            if no_of_uninferred_premise_symbols[sentence] == 0:
+                agenda.add(conclusion)
 
+        is_inferred[symbol] = True
+    
     return False
 
 
