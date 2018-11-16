@@ -15,36 +15,29 @@ def get_axioms(kb):
     return {sentence for sentence in kb.sentences if len(sentence.split()) == 1}
 
 def pl_fc_entails(kb, query):
-    agenda = get_axioms(kb)
-    print('agenda : {}'.format(agenda))
+    axioms = get_axioms(kb)
 
-    engine = SentenceEngine('{} and {}'.format(kb.as_sentence(), query))
-    is_inferred = { symbol: False for symbol in engine.extract_proposition_symbols() }
-
-    no_of_uninferred_premise_symbols = dict()
-
+    no_of_uninferred_premises = dict()
     for sentence in kb.sentences:
         premise, conclusion = get_premise_and_conclusion(sentence)
-        no_of_uninferred_premise_symbols[sentence] = sum([1 for s in premise.split() if s not in operators])
+        no_of_uninferred_premises[sentence] = sum([1 for s in premise.split() if s not in operators])
 
-    print('unresolved premise symbols for : {}'.format(no_of_uninferred_premise_symbols))
+    while axioms:
+        axiom = axioms.pop()
 
-    while agenda:
-        symbol = agenda.pop()
-        if symbol == query:
+        if axiom == query:
             return True
-
-        if is_inferred[symbol]:
-            continue
-
-        for sentence in kb.sentences:
+        
+        index = 0
+        while index < len(kb.sentences):
+            sentence = kb.sentences[index]
             premise, conclusion = get_premise_and_conclusion(sentence)
-            if symbol in premise:
-                no_of_uninferred_premise_symbols[sentence] -= 1
-            if no_of_uninferred_premise_symbols[sentence] == 0:
-                agenda.add(conclusion)
-
-        is_inferred[symbol] = True
+            if axiom in premise:
+                no_of_uninferred_premises[sentence] -= 1
+                if no_of_uninferred_premises[sentence] == 0:
+                    axioms.add(conclusion)
+                    kb.tell(conclusion)
+            index += 1
     
     return False
 
@@ -61,8 +54,10 @@ def main():
 
     query = 'q'
 
+    print('size : {}'.format(kb.size()))
     print('Entails ? {}'.format(pl_fc_entails(kb, query)))
-
+    print('size : {}'.format(kb.size()))
+    print('kb : {}'.format(kb.as_sentence()))
 
 if __name__ == '__main__':
     main()
