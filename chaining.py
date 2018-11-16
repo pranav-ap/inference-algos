@@ -1,4 +1,3 @@
-from sentence_engine import SentenceEngine
 from knowledge_base import KnowledgeBase
 from utils import operators
 
