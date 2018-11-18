@@ -105,9 +105,8 @@ def get_expression_tree(sentence):
 
     return root
 
-# Conjunctive Normal Form Conversion
 
-def _eliminate_bidirection(self, root):
+def eliminate_bidirection(root):
     if not (isinstance(root, Operator) and root.op == '<=>'):
         return root
 
@@ -128,7 +127,7 @@ def _eliminate_bidirection(self, root):
     return and_node
 
 
-def _eliminate_implication(self, root):
+def eliminate_implication(root):
     if not (isinstance(root, Operator) and root.op == '=>'):
         return root
 
@@ -143,7 +142,7 @@ def _eliminate_implication(self, root):
     return or_node
 
 
-def _move_not_inwards(self, root):
+def move_not_inwards(root):
     deathrow = findall(
         root,
         filter_=lambda node: isinstance(node, Operator) and node.op == 'not' and isinstance(node.children[0],
@@ -170,7 +169,7 @@ def _move_not_inwards(self, root):
     return root
 
 
-def _apply_distribution_law(self, root):
+def apply_distribution_law(root):
     deathrow = findall(
         root,
         filter_=lambda node: isinstance(node, Operator) and node.op == 'or'
@@ -185,13 +184,13 @@ def to_conjunctive_normal_form(sentence):
     root = get_expression_tree(sentence)
 
     print(RenderTree(root))
-    root = self._eliminate_bidirection(root)
+    root = eliminate_bidirection(root)
     print(RenderTree(root))
-    root = self._eliminate_implication(root)
+    root = eliminate_implication(root)
     print(RenderTree(root))
-    root = self._move_not_inwards(root)
+    root = move_not_inwards(root)
     print(RenderTree(root))
-    root = self._apply_distribution_law(root)
+    root = apply_distribution_law(root)
 
     return root
 

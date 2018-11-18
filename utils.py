@@ -1,55 +1,86 @@
-from enum import Enum
 from anytree import NodeMixin
 
 
-class ValencyType(Enum):
-    NULL = 0
-    UNARY = 1
-    BINARY = 2
-
-
-class OperatorType(Enum):
-    NULL = ''
-    AND = 'and'
-    OR = 'or'
-    NOT = 'not'
-    IMPLIES = '=>'
-    BIDIRECTIONAL = '<=>'
-    LEFT_PARENTHESIS = '('
-    RIGHT_PARENTHESIS = ')'
-
-
-operators = [x[1].value for x in OperatorType.__members__.items()]
-
-
-logical_precedence = {
-    OperatorType.NOT.value: 7,
-    OperatorType.AND.value: 6,
-    OperatorType.OR.value: 5,
-    OperatorType.LEFT_PARENTHESIS.value: 4,
-    OperatorType.RIGHT_PARENTHESIS.value: 3,
-    OperatorType.IMPLIES.value: 2,
-    OperatorType.BIDIRECTIONAL.value: 1
-}
+operators = ['not', 'and', 'or', '(', ')', '=>', '<=>']
 
 
 class Operator(NodeMixin):
-    def __init__(self, op, value=None, parent=None):
-        self.op = str(op)
-        self.value = value
+    def __init__(self, parent=None):
         self.parent = parent
+        self.computed_value = None
 
-    def __repr__(self):
-        return 'Operator : {}'.format(self.op)
+    def calculate(self):
+        raise NotImplementedError()
 
 
-# Represents a single value argument
+class UnaryOperator(Operator):
+    def __init__(self, parent=None, child=None):
+        Operator.__init__(self, parent=parent)
+        self.child = child
+
+    def calculate(self):
+        raise NotImplementedError()
+
+
+class Not(UnaryOperator):
+    def __init__(self, parent=None, child=None):
+        UnaryOperator.__init__(self, parent=parent, child=child)
+
+    def calculate(self):
+        self.computed_value = not self.child.value
+
+
+class BinaryOperator(Operator):
+    def __init__(self, parent=None, lhs=None, rhs=None):
+        Operator.__init__(self, parent=parent)
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def calculate(self):
+        raise NotImplementedError()
+
+
+class And(BinaryOperator):
+    def __init__(self, parent=None, lhs=None, rhs=None):
+        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+
+    def calculate(self):
+        self.computed_value = self.lhs.value and self.rhs.value
+
+
+class Or(BinaryOperator):
+    def __init__(self, parent=None, lhs=None, rhs=None):
+        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+
+    def calculate(self):
+        self.computed_value = self.lhs.value or self.rhs.value
+
+
+class Implies(BinaryOperator):
+    def __init__(self, parent=None, lhs=None, rhs=None):
+        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+
+    def calculate(self):
+        self.computed_value = False if self.lhs.value and not self.rhs.value else True
+
+
+class Bidirectional(BinaryOperator):
+    def __init__(self, parent=None, lhs=None, rhs=None):
+        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+
+    def calculate(self):
+        self.computed_value = self.lhs.value == self.rhs.value
+
+
 class Argument(NodeMixin):
-    def __init__(self, arg, value=None, parent=None):
-        self.arg = arg
-        self.value = value
+    def __init__(self, parent=None, value=None):
         self.parent = parent
+        self.value = value
 
-    def __repr__(self):
-        return 'Argument : {}'.format(self.arg)
 
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
