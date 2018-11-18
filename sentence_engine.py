@@ -1,6 +1,8 @@
-from utils import Operator, Argument, logical_precedence, operators, OperatorType
-from anytree import RenderTree, findall
-from copy import deepcopy
+from anytree import RenderTree
+from utils import (
+    Operator, Argument, logical_precedence, operators,
+    Not, And, Or, Implies, Bidirectional
+)
 
 
 def prepare(sentence):
@@ -9,16 +11,20 @@ def prepare(sentence):
     return sentence
 
 
-def tokenize(sentence):
+def dumb_tokenize(sentence):
+    return prepare(sentence).split(' ')
+
+
+def smart_tokenize(sentence):
     previous = ''
     tokens = []
 
-    for current in sentence.split(' ') + ['$']:
+    for current in dumb_tokenize(sentence) + ['$']:
         if previous == '':
             previous = current
             continue
 
-        if previous != OperatorType.NOT.value:
+        if previous != 'not':
             tokens.append(previous)
             previous = current
         elif current not in operators:
@@ -31,19 +37,17 @@ def tokenize(sentence):
     return tokens
 
 
-def negate(symbol):
-    return '{} {}'.format(OperatorType.NOT.value, symbol) if not symbol.startswith(OperatorType.NOT.value) else symbol
+def negate(word):
+    return word if word.startswith('not') else 'not {}'.format(word)
 
 
 def extract_proposition_symbols(sentence):
-    symbols = {s for s in tokenize(sentence)}
-    symbols = {s for s in symbols if s not in operators}
-    return symbols
+    return {s for s in dumb_tokenize(sentence) if s not in operators}
 
 
 def complement_exists(pos_symbol, sentence):
     neg_symbol = negate(pos_symbol)
-    tokens = tokenize(sentence)
+    tokens = smart_tokenize(sentence)
     return pos_symbol in tokens and neg_symbol in tokens
 
 
@@ -55,22 +59,26 @@ def is_conjunction(sentence):
     return not sentence.startswith('not (') and all(token not in ['or', '=>', '<=>'] for token in sentence)
 
 
+def assemble(root):
+    return
+
+
 def infix_to_postfix(sentence):
     stack = []
     output = []
 
-    for token in sentence.split(' '):
+    for token in dumb_tokenize(sentence):
         if token not in operators:
             output.append(token)
-        elif token == OperatorType.LEFT_PARENTHESIS.value:
+        elif token == '(':
             stack.append(token)
-        elif token == OperatorType.RIGHT_PARENTHESIS.value:
+        elif token == ')':
             # pop until a '(' is popped
-            while stack and stack[-1] != OperatorType.LEFT_PARENTHESIS.value:
+            while stack and stack[-1] != '(':
                 output.append(stack.pop())
             stack.pop()
         else:
-            while stack and stack[-1] != OperatorType.LEFT_PARENTHESIS.value and logical_precedence[token] <= logical_precedence[stack[-1]]:
+            while stack and stack[-1] != '(' and logical_precedence[token] <= logical_precedence[stack[-1]]:
                 output.append(stack.pop())
             stack.append(token)
 
@@ -81,18 +89,34 @@ def infix_to_postfix(sentence):
     return ' '.join(output)
 
 
+def get_as_class(token):
+    if token == 'not':
+        return Not()
+    elif token == 'or':
+        return Or()
+    elif token == 'and':
+        return And()
+    elif token == '=>':
+        return Implies()
+    elif token == '<=>':
+        return Bidirectional()
+    elif token in ['(', ')']:
+        return token
+    else:
+        return Argument(value=token)
+
+
 def get_expression_tree(sentence):
-    stack = []
-    postfix = infix_to_postfix(sentence).split(' ')
-    postfix = list(map(lambda arg: Operator(arg) if arg in operators else Argument(arg), postfix))
+    postfix = infix_to_postfix(sentence)
+    postfix = dumb_tokenize(postfix)
+    postfix = list(map(lambda token: get_as_class(token), postfix))
 
     root = postfix[-1]
+    stack = []
 
     for node in postfix:
-        if isinstance(node, Argument):
-            stack.append(node)
-        else:
-            if node.op == OperatorType.NOT.value:
+        if isinstance(node, Operator):
+            if isinstance(node, Not):
                 arg = stack.pop()
                 arg.parent = node
             else:
@@ -101,102 +125,13 @@ def get_expression_tree(sentence):
                 arg2 = stack.pop()
                 arg2.parent = node
 
-            stack.append(node)
-
-    return root
-
-
-def eliminate_bidirection(root):
-    if not (isinstance(root, Operator) and root.op == '<=>'):
-        return root
-
-    and_node = Operator('and')
-    left_implication = Operator('=>', parent=and_node)
-    right_implication = Operator('=>', parent=and_node)
-
-    left_implication_left, left_implication_right = root.children
-    right_implication_right, right_implication_left = deepcopy(left_implication_left), deepcopy(
-        left_implication_right)
-
-    left_implication_left.parent = left_implication
-    left_implication_right.parent = left_implication
-
-    right_implication_left.parent = right_implication
-    right_implication_right.parent = right_implication
-
-    return and_node
-
-
-def eliminate_implication(root):
-    if not (isinstance(root, Operator) and root.op == '=>'):
-        return root
-
-    or_node = Operator('or')
-    not_node = Operator('not')
-    not_node.parent = or_node
-
-    left, right = root.children
-    left.parent = not_node
-    right.parent = or_node
-
-    return or_node
-
-
-def move_not_inwards(root):
-    deathrow = findall(
-        root,
-        filter_=lambda node: isinstance(node, Operator) and node.op == 'not' and isinstance(node.children[0],
-                                                                                            Operator))
-
-    for inmate in deathrow:
-        before = inmate.parent
-        after = inmate.children[0]
-        after.op = 'or' if after.op == 'and' else 'and'
-        after.parent = before
-        inmate.parent = None
-
-        for child in after.children:
-            if isinstance(child, Operator) and child.op == 'not':
-                temp = child.children[0]
-                child.parent = None
-                child = temp
-                child.parent = after
-            else:
-                not_node = Operator('not')
-                not_node.parent = after
-                child.parent = not_node
-
-    return root
-
-
-def apply_distribution_law(root):
-    deathrow = findall(
-        root,
-        filter_=lambda node: isinstance(node, Operator) and node.op == 'or'
-                             and any(isinstance(n, Operator) and n.op == 'and' for n in node.children))
-
-    print(deathrow)
-
-    return root
-
-
-def to_conjunctive_normal_form(sentence):
-    root = get_expression_tree(sentence)
-
-    print(RenderTree(root))
-    root = eliminate_bidirection(root)
-    print(RenderTree(root))
-    root = eliminate_implication(root)
-    print(RenderTree(root))
-    root = move_not_inwards(root)
-    print(RenderTree(root))
-    root = apply_distribution_law(root)
+        stack.append(node)
 
     return root
 
 
 def main():
-    print(RenderTree(to_conjunctive_normal_form('( b11 <=> ( p12 or not p21 ) )')))
+    print(RenderTree(get_expression_tree('( b11 <=> ( p12 or not p21 ) )')))
 
 
 if __name__ == '__main__':
