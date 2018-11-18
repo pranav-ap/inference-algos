@@ -29,7 +29,7 @@ class Operator(NodeMixin):
 class UnaryOperator(Operator):
     def __init__(self, parent=None, child=None):
         Operator.__init__(self, parent=parent)
-        self.child = child
+        self.child = child or Argument()
 
     def calculate(self):
         raise NotImplementedError()
@@ -46,14 +46,14 @@ class Not(UnaryOperator):
         self.computed_value = not self.child.value
 
     def __repr__(self):
-        return 'Not'
+        return 'not {}'.format(self.child.value)
 
 
 class BinaryOperator(Operator):
     def __init__(self, parent=None, lhs=None, rhs=None):
         Operator.__init__(self, parent=parent)
-        self.lhs = lhs
-        self.rhs = rhs
+        self.lhs = lhs or Argument()
+        self.rhs = rhs or Argument()
 
     def calculate(self):
         raise NotImplementedError()
@@ -70,7 +70,7 @@ class And(BinaryOperator):
         self.computed_value = self.lhs.value and self.rhs.value
 
     def __repr__(self):
-        return 'And'
+        return '{} and {}'.format(self.lhs.value, self.rhs.value)
 
 
 class Or(BinaryOperator):
@@ -81,7 +81,7 @@ class Or(BinaryOperator):
         self.computed_value = self.lhs.value or self.rhs.value
 
     def __repr__(self):
-        return 'Or'
+        return '{} or {}'.format(self.lhs.value, self.rhs.value)
 
 
 class Implies(BinaryOperator):
@@ -92,7 +92,7 @@ class Implies(BinaryOperator):
         self.computed_value = False if self.lhs.value and not self.rhs.value else True
 
     def __repr__(self):
-        return 'Implies'
+        return '{} => {}'.format(self.lhs.value, self.rhs.value)
 
 
 class Bidirectional(BinaryOperator):
@@ -103,13 +103,13 @@ class Bidirectional(BinaryOperator):
         self.computed_value = self.lhs.value == self.rhs.value
 
     def __repr__(self):
-        return 'Bidirectional'
+        return '{} <=> {}'.format(self.lhs.value, self.rhs.value)
 
 
 class Argument(NodeMixin):
     def __init__(self, parent=None, value=None):
         self.parent = parent
-        self.value = value
+        self.value = value or False
 
     def __repr__(self):
         return 'Argument {}'.format(self.value)

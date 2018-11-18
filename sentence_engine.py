@@ -119,11 +119,14 @@ def get_expression_tree(sentence):
             if isinstance(node, Not):
                 arg = stack.pop()
                 arg.parent = node
+                node.child = arg
             else:
                 arg1 = stack.pop()
                 arg1.parent = node
+                node.lhs = arg1
                 arg2 = stack.pop()
                 arg2.parent = node
+                node.rhs = arg2
 
         stack.append(node)
 
