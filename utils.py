@@ -29,7 +29,7 @@ class Operator(NodeMixin):
 class UnaryOperator(Operator):
     def __init__(self, parent=None, child=None):
         Operator.__init__(self, parent=parent)
-        self.child = child or Argument()
+        self.child = child
 
     def calculate(self):
         raise NotImplementedError()
@@ -52,8 +52,8 @@ class Not(UnaryOperator):
 class BinaryOperator(Operator):
     def __init__(self, parent=None, lhs=None, rhs=None):
         Operator.__init__(self, parent=parent)
-        self.lhs = lhs or Argument()
-        self.rhs = rhs or Argument()
+        self.lhs = lhs
+        self.rhs = rhs
 
     def calculate(self):
         raise NotImplementedError()

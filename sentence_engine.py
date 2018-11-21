@@ -59,7 +59,7 @@ def is_conjunction(sentence):
     return not sentence.startswith('not (') and all(token not in ['or', '=>', '<=>'] for token in sentence)
 
 
-def assemble(root):
+def tree_to_infix(root):
     return
 
 
@@ -89,39 +89,20 @@ def infix_to_postfix(sentence):
     return ' '.join(output)
 
 
-def get_as_class(token):
-    if token == 'not':
-        return Not()
-    elif token == 'or':
-        return Or()
-    elif token == 'and':
-        return And()
-    elif token == '=>':
-        return Implies()
-    elif token == '<=>':
-        return Bidirectional()
-    elif token in ['(', ')']:
-        return token
-    else:
-        return Argument(value=token)
-
-
 def get_expression_tree(sentence):
     postfix = infix_to_postfix(sentence)
     postfix = dumb_tokenize(postfix)
 
-    root = get_as_class(postfix[-1])
+    root = node = None
     stack = []
 
     for token in postfix:
-        node = None
-
         if token == 'not':
             child = stack.pop()
             node = Not(child=child)
             child.parent = node
         elif token in ['or', 'and', '=>', '<=>']:
-            lhs, rhs = stack.pop(), stack.pop()
+            rhs, lhs = stack.pop(), stack.pop()
 
             if token == 'or':
                 node = Or(lhs=lhs, rhs=rhs)
@@ -132,11 +113,12 @@ def get_expression_tree(sentence):
             elif token == '<=>':
                 node = Bidirectional(lhs=lhs, rhs=rhs)
 
-            lhs.parent = rhs.parent = node
+            rhs.parent = lhs.parent = node
         else:
             node = Argument(value=token)
 
         stack.append(node)
+        root = stack[0] if stack[0] else root
 
     return root
 
