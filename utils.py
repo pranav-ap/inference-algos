@@ -17,7 +17,7 @@ logical_precedence = {
 class Operator(NodeMixin):
     def __init__(self, parent=None):
         self.parent = parent
-        self.computed_value = None
+        self.value = None
 
     def calculate(self):
         raise NotImplementedError()
@@ -43,7 +43,7 @@ class Not(UnaryOperator):
         UnaryOperator.__init__(self, parent=parent, child=child)
 
     def calculate(self):
-        self.computed_value = not self.child.value
+        self.value = not self.child.value
 
     def __repr__(self):
         return 'not {}'.format(self.child.value)
@@ -67,7 +67,7 @@ class And(BinaryOperator):
         BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
 
     def calculate(self):
-        self.computed_value = self.lhs.value and self.rhs.value
+        self.value = self.lhs.value and self.rhs.value
 
     def __repr__(self):
         return '{} and {}'.format(self.lhs.value, self.rhs.value)
@@ -78,7 +78,7 @@ class Or(BinaryOperator):
         BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
 
     def calculate(self):
-        self.computed_value = self.lhs.value or self.rhs.value
+        self.value = self.lhs.value or self.rhs.value
 
     def __repr__(self):
         return '{} or {}'.format(self.lhs.value, self.rhs.value)
@@ -89,7 +89,7 @@ class Implies(BinaryOperator):
         BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
 
     def calculate(self):
-        self.computed_value = False if self.lhs.value and not self.rhs.value else True
+        self.value = False if self.lhs.value and not self.rhs.value else True
 
     def __repr__(self):
         return '{} => {}'.format(self.lhs.value, self.rhs.value)
@@ -100,7 +100,7 @@ class Bidirectional(BinaryOperator):
         BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
 
     def calculate(self):
-        self.computed_value = self.lhs.value == self.rhs.value
+        self.value = self.lhs.value == self.rhs.value
 
     def __repr__(self):
         return '{} <=> {}'.format(self.lhs.value, self.rhs.value)
@@ -109,7 +109,7 @@ class Bidirectional(BinaryOperator):
 class Argument(NodeMixin):
     def __init__(self, parent=None, value=None):
         self.parent = parent
-        self.value = value or False
+        self.value = value
 
     def __repr__(self):
         return 'Argument {}'.format(self.value)

@@ -109,24 +109,32 @@ def get_as_class(token):
 def get_expression_tree(sentence):
     postfix = infix_to_postfix(sentence)
     postfix = dumb_tokenize(postfix)
-    postfix = list(map(lambda token: get_as_class(token), postfix))
 
-    root = postfix[-1]
+    root = get_as_class(postfix[-1])
     stack = []
 
-    for node in postfix:
-        if isinstance(node, Operator):
-            if isinstance(node, Not):
-                arg = stack.pop()
-                arg.parent = node
-                node.child = arg
-            else:
-                arg1 = stack.pop()
-                arg1.parent = node
-                node.lhs = arg1
-                arg2 = stack.pop()
-                arg2.parent = node
-                node.rhs = arg2
+    for token in postfix:
+        node = None
+
+        if token == 'not':
+            child = stack.pop()
+            node = Not(child=child)
+            child.parent = node
+        elif token in ['or', 'and', '=>', '<=>']:
+            lhs, rhs = stack.pop(), stack.pop()
+
+            if token == 'or':
+                node = Or(lhs=lhs, rhs=rhs)
+            elif token == 'and':
+                node = And(lhs=lhs, rhs=rhs)
+            elif token == '=>':
+                node = Implies(lhs=lhs, rhs=rhs)
+            elif token == '<=>':
+                node = Bidirectional(lhs=lhs, rhs=rhs)
+
+            lhs.parent = rhs.parent = node
+        else:
+            node = Argument(value=token)
 
         stack.append(node)
 
