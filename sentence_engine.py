@@ -172,6 +172,10 @@ def to_cnf(root):
     return root
 
 
+def remove_symbol_from_cnf(symbol, sentence):
+    pass
+
+
 def main():
     print(RenderTree(to_cnf(get_expression_tree('( b11 <=> ( p12 or not p21 ) )'))))
 

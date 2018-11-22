@@ -1,20 +1,43 @@
-from utils import extract_preposition_symbols
 from knowledge_base import KnowledgeBase
 from itertools import combinations
+from copy import deepcopy
+from sentence_engine import (
+    to_cnf, extract_proposition_symbols, negate,
+    smart_tokenize)
+
+
+def pl_resolve(c1, c2):
+    sentence = c1 + ' or ' + c2
+    tokens = smart_tokenize(sentence)
+    symbols = extract_proposition_symbols(sentence)
+
+    resolvents = set()
+
+    for s in symbols:
+        temp_tokens = deepcopy(tokens)
+        if s in tokens and negate(s) in tokens:
+            temp_tokens.remove(s)
+            temp_tokens.remove(negate(s))
+            resolvents.add(temp_tokens)
+
+    return [' or '.join(r) for r in resolvents]
 
 
 def pl_resolution(kb, alpha):
-    cnf_form = get_cnf_form("{} and not {}".format(kb.as_sentence(), alpha))
+    cnf_form = to_cnf("{} and not ( {} )".format(kb.as_sentence(), alpha))
     clauses = {clause for clause in cnf_form.split('and')}
     new = set()
 
     while True:
         for c1, c2 in combinations(clauses, 2):
             resolvents = pl_resolve(c1, c2)
-            if {} in resolvents:
+            if '' in resolvents:
                 return True
+            new.add(resolvents)
+
         if new.issubset(clauses):
             return False
+
         clauses.update(new)
 
 
@@ -28,8 +51,7 @@ def main():
 
     alpha = 'not p12'
 
-    cnf_form = get_cnf_form("{} and not ( {} )".format(kb.as_sentence(), alpha))
-    print(cnf_form)
+    print(pl_resolution(kb, alpha))
 
 
 if __name__ == '__main__':
