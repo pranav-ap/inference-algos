@@ -27,8 +27,9 @@ class Operator(NodeMixin):
 
 
 class UnaryOperator(Operator):
-    def __init__(self, parent=None, child=None):
+    def __init__(self, child, parent=None):
         Operator.__init__(self, parent=parent)
+        child.parent = self
         self.child = child
 
     def calculate(self):
@@ -39,8 +40,8 @@ class UnaryOperator(Operator):
 
 
 class Not(UnaryOperator):
-    def __init__(self, parent=None, child=None):
-        UnaryOperator.__init__(self, parent=parent, child=child)
+    def __init__(self, child, parent=None):
+        UnaryOperator.__init__(self, child, parent=parent)
 
     def calculate(self):
         self.value = not self.child.value
@@ -50,8 +51,9 @@ class Not(UnaryOperator):
 
 
 class BinaryOperator(Operator):
-    def __init__(self, parent=None, lhs=None, rhs=None):
+    def __init__(self, lhs, rhs, parent=None):
         Operator.__init__(self, parent=parent)
+        lhs.parent = rhs.parent = self
         self.lhs = lhs
         self.rhs = rhs
 
@@ -63,8 +65,8 @@ class BinaryOperator(Operator):
 
 
 class And(BinaryOperator):
-    def __init__(self, parent=None, lhs=None, rhs=None):
-        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+    def __init__(self, lhs, rhs, parent=None):
+        BinaryOperator.__init__(self, lhs, rhs, parent=parent)
 
     def calculate(self):
         self.value = self.lhs.value and self.rhs.value
@@ -74,8 +76,8 @@ class And(BinaryOperator):
 
 
 class Or(BinaryOperator):
-    def __init__(self, parent=None, lhs=None, rhs=None):
-        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+    def __init__(self, lhs, rhs, parent=None):
+        BinaryOperator.__init__(self, lhs, rhs, parent=parent)
 
     def calculate(self):
         self.value = self.lhs.value or self.rhs.value
@@ -85,8 +87,8 @@ class Or(BinaryOperator):
 
 
 class Implies(BinaryOperator):
-    def __init__(self, parent=None, lhs=None, rhs=None):
-        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+    def __init__(self, lhs, rhs, parent=None):
+        BinaryOperator.__init__(self, lhs, rhs, parent=parent)
 
     def calculate(self):
         self.value = False if self.lhs.value and not self.rhs.value else True
@@ -96,8 +98,8 @@ class Implies(BinaryOperator):
 
 
 class Bidirectional(BinaryOperator):
-    def __init__(self, parent=None, lhs=None, rhs=None):
-        BinaryOperator.__init__(self, parent=parent, lhs=lhs, rhs=rhs)
+    def __init__(self, lhs, rhs, parent=None):
+        BinaryOperator.__init__(self, lhs, rhs, parent=parent)
 
     def calculate(self):
         self.value = self.lhs.value == self.rhs.value
