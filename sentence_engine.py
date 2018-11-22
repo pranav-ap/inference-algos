@@ -60,7 +60,7 @@ def is_conjunction(sentence):
     return not sentence.startswith('not (') and all(token not in ['or', '=>', '<=>'] for token in sentence)
 
 
-def tree_to_infix(root):
+def expression_tree_to_postfix(root):
     return
 
 
@@ -101,7 +101,6 @@ def get_expression_tree(sentence):
         if token == 'not':
             child = stack.pop()
             node = Not(child=child)
-            child.parent = node
         elif token in ['or', 'and', '=>', '<=>']:
             rhs, lhs = stack.pop(), stack.pop()
 
@@ -113,8 +112,6 @@ def get_expression_tree(sentence):
                 node = Implies(lhs=lhs, rhs=rhs)
             elif token == '<=>':
                 node = Bidirectional(lhs=lhs, rhs=rhs)
-
-            rhs.parent = lhs.parent = node
         else:
             node = Argument(value=token)
 
@@ -132,17 +129,24 @@ def eliminate_bidirectional(root):
     deathrow = get_death_row(root, Bidirectional)
 
     for inmate in deathrow:
-        left_implication = Implies()
-        right_implication = Implies()
+        child_1, child_2 = deepcopy(inmate.children)
+        left_implication = Implies(lhs=child_1, rhs=child_2)
+        
+        child_1, child_2 = deepcopy(inmate.children)
+        right_implication = Implies(lhs=child_2, rhs=child_1)
+
         and_node = And(lhs=left_implication, rhs=right_implication)
 
-        left_implication_left, left_implication_right = inmate.children
-        right_implication_right, right_implication_left = deepcopy(left_implication_left), deepcopy(left_implication_right)
-
-        left_implication_left.parent = left_implication
-        left_implication_right.parent = left_implication
-        right_implication_left.parent = right_implication
-        right_implication_right.parent = right_implication
+        if inmate.is_root:
+            and_node.parent = None 
+            root = and_node
+        else:
+            if inmate == inmate.parent.lhs:
+                inmate.parent.lhs = and_node
+            else:
+                inmate.parent.rhs = and_node
+            
+            and_node.parent = inmate.parent
 
     return root
 
@@ -160,16 +164,16 @@ def distribute_and_over_or(root):
 
 
 def to_cnf(root):
-    root = eliminate_bidirection(root)
-    root = eliminate_implication(root)
-    root = move_not_inwards(root)
-    root = distribute_and_over_or(root)
+    root = eliminate_bidirectional(root)
+    # root = eliminate_implication(root)
+    # root = move_not_inwards(root)
+    # root = distribute_and_over_or(root)
 
     return root
 
 
 def main():
-    print(RenderTree(get_expression_tree('( b11 <=> ( p12 or not p21 ) )')))
+    print(RenderTree(to_cnf(get_expression_tree('( b11 <=> ( p12 or not p21 ) )'))))
 
 
 if __name__ == '__main__':
