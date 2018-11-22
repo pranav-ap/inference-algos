@@ -10,8 +10,10 @@ def get_premise_and_conclusion(sentence):
 
     return premise.strip(), conclusion.strip()
 
+
 def get_axioms(kb):
-    return {sentence for sentence in kb.sentences if len(sentence.split()) == 1}
+    return {s for s in kb.sentences if len(s.split()) == 1}
+
 
 def pl_fc_entails(kb, query):
     axioms = get_axioms(kb)
@@ -53,10 +55,11 @@ def main():
 
     query = 'q'
 
-    print('size : {}'.format(kb.size()))
+    print('size of kb before inference : {}'.format(kb.size()))
     print('Entails ? {}'.format(pl_fc_entails(kb, query)))
-    print('size : {}'.format(kb.size()))
+    print('size of kb after inference : {}'.format(kb.size()))
     print('kb : {}'.format(kb.as_sentence()))
+
 
 if __name__ == '__main__':
     main()
