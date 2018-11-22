@@ -1,6 +1,7 @@
-from anytree import RenderTree
+from anytree import RenderTree, findall
+from copy import deepcopy
 from utils import (
-    Operator, Argument, logical_precedence, operators,
+    Argument, logical_precedence, operators,
     Not, And, Or, Implies, Bidirectional
 )
 
@@ -119,6 +120,50 @@ def get_expression_tree(sentence):
 
         stack.append(node)
         root = stack[0] if stack[0] else root
+
+    return root
+
+
+def get_death_row(root, type):
+    return findall(root, filter_=lambda node: isinstance(node, type))
+
+
+def eliminate_bidirectional(root):
+    deathrow = get_death_row(root, Bidirectional)
+
+    for inmate in deathrow:
+        left_implication = Implies()
+        right_implication = Implies()
+        and_node = And(lhs=left_implication, rhs=right_implication)
+
+        left_implication_left, left_implication_right = inmate.children
+        right_implication_right, right_implication_left = deepcopy(left_implication_left), deepcopy(left_implication_right)
+
+        left_implication_left.parent = left_implication
+        left_implication_right.parent = left_implication
+        right_implication_left.parent = right_implication
+        right_implication_right.parent = right_implication
+
+    return root
+
+
+def eliminate_implication(root):
+    pass
+
+
+def move_not_inwards(root):
+    pass
+
+
+def distribute_and_over_or(root):
+    pass
+
+
+def to_cnf(root):
+    root = eliminate_bidirection(root)
+    root = eliminate_implication(root)
+    root = move_not_inwards(root)
+    root = distribute_and_over_or(root)
 
     return root
 

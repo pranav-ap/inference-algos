@@ -107,8 +107,9 @@ class Bidirectional(BinaryOperator):
 
 
 class Argument(NodeMixin):
-    def __init__(self, parent=None, value=None):
+    def __init__(self, parent=None, symbol=None, value=None):
         self.parent = parent
+        self.symbol = symbol
         self.value = value
 
     def __repr__(self):
