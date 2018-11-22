@@ -1,6 +1,3 @@
-from utils import OperatorType
-
-
 class KnowledgeBase():
     def __init__(self):
         self.sentences = []
@@ -15,7 +12,7 @@ class KnowledgeBase():
         self.sentences.remove(sentence)
 
     def as_sentence(self):
-        single_sentence = ' ) {} ( '.format(OperatorType.AND.value).join(self.sentences)
+        single_sentence = ' ) and ( '.join(self.sentences)
         single_sentence = '( ' + single_sentence + ' )'
         return single_sentence
 

@@ -1,6 +1,7 @@
 from knowledge_base import KnowledgeBase
 from anytree import LevelOrderIter
-from utils import OperatorType
+from sentence_engine import get_expression_tree, extract_proposition_symbols
+from utils import Argument
 from copy import deepcopy
 
 
@@ -11,22 +12,12 @@ def is_pl_true(sentence, model):
     execution_order.reverse()
 
     for node in execution_order:
-        if node.is_leaf:
-            node.value = model.get(node.arg)
-            continue
+        if isinstance(node, Argument):
+            node.value = model.get(node.symbol)
+        else:
+            node.calculate()
 
-        if node.op == OperatorType.NOT.value:
-            node.value = not node.children[0].value
-        elif node.op == OperatorType.AND.value:
-            node.value = node.children[0].value and node.children[1].value
-        elif node.op == OperatorType.OR.value:
-            node.value = node.children[0].value or node.children[1].value
-        elif node.op == OperatorType.IMPLIES.value:
-            node.value = not node.children[0].value or node.children[1].value
-        elif node.op == OperatorType.BIDIRECTIONAL.value:
-            node.value = node.children[0].value == node.children[1].value
-
-    return root.value
+    return execution_order[-1].value
 
 
 def check_all(kb, alpha, symbols, model):
@@ -42,23 +33,23 @@ def check_all(kb, alpha, symbols, model):
     p = symbols.pop()
 
     symbols1 = deepcopy(symbols)
-    branch1 = deepcopy(model)
-    branch1[p] = True
+    model1 = deepcopy(model)
+    model1[p] = True
 
     symbols2 = deepcopy(symbols)
-    branch2 = deepcopy(model)
-    branch2[p] = False
+    model2 = deepcopy(model)
+    model2[p] = False
 
     return (
-            check_all(kb, alpha, symbols1, branch1)
+            check_all(kb, alpha, symbols1, model1)
             and
-            check_all(kb, alpha, symbols2, branch2)
+            check_all(kb, alpha, symbols2, model2)
     )
 
 
 def check_if_entails(kb, alpha):
-    symbols = extract_preposition_symbols(alpha)
-    symbols.update([s for sentence in kb.sentences for s in extract_preposition_symbols(sentence)])
+    symbols = extract_proposition_symbols(alpha)
+    symbols.update([s for sentence in kb.sentences for s in extract_proposition_symbols(sentence)])
     return check_all(kb, alpha, symbols, {})
 
 
