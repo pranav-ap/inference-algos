@@ -61,7 +61,9 @@ def is_conjunction(sentence):
 
 
 def expression_tree_to_postfix(root):
-    return
+    postfix= ''
+
+    return postfix
 
 
 def infix_to_postfix(sentence):
@@ -147,12 +149,34 @@ def eliminate_bidirectional(root):
                 inmate.parent.rhs = and_node
             
             and_node.parent = inmate.parent
+            inmate.parent = None
 
     return root
 
 
 def eliminate_implication(root):
-    pass
+    deathrow = get_death_row(root, Implies)
+
+    for inmate in deathrow:
+        left_child, right_child = inmate.children
+
+        not_node = Not(child=left_child)
+        or_node = Or(lhs=not_node, rhs=right_child)
+        or_node.parent = inmate.parent
+
+        if inmate.is_root:
+            or_node.parent = None
+            root = or_node
+        else:
+            if inmate == inmate.parent.lhs:
+                inmate.parent.lhs = or_node
+            else:
+                inmate.parent.rhs = or_node
+
+            or_node.parent = inmate.parent
+            inmate.parent = None
+
+    return root
 
 
 def move_not_inwards(root):
@@ -165,15 +189,12 @@ def distribute_and_over_or(root):
 
 def to_cnf(root):
     root = eliminate_bidirectional(root)
-    # root = eliminate_implication(root)
+    print(RenderTree(root))
+    root = eliminate_implication(root)
     # root = move_not_inwards(root)
     # root = distribute_and_over_or(root)
 
     return root
-
-
-def remove_symbol_from_cnf(symbol, sentence):
-    pass
 
 
 def main():
