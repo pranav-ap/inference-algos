@@ -1,4 +1,4 @@
-from anytree import RenderTree, findall, LevelOrderIter
+from anytree import RenderTree, findall, LevelOrderIter, PostOrderIter
 from copy import deepcopy
 from utils import (
     Operator, Argument, logical_precedence, operators,
@@ -60,10 +60,32 @@ def is_conjunction(sentence):
     return not sentence.startswith('not (') and all(token not in ['or', '=>', '<=>'] for token in sentence)
 
 
-def expression_tree_to_postfix(root):
-    postfix= ''
+def expression_tree_to_sentence(root):
+    sentence = [node.symbol for node in PostOrderIter(root)]
+    print(sentence)
+    sentence.reverse()
+    sentence = postfix_to_infix(sentence)
 
-    return postfix
+    return sentence
+
+
+def postfix_to_infix(postfix):
+    stack = []
+
+    while postfix:
+        p = postfix.pop()
+
+        if p not in operators:
+            stack.append(p)
+        else:
+            if p == 'not':
+                child = stack.pop()
+                stack.append('( not {} )'.format(child))
+            else:
+                lhs, rhs = stack.pop(), stack.pop()
+                stack.append('( {} {} {} )'.format(lhs, p, rhs))
+
+    return stack[0]
 
 
 def infix_to_postfix(sentence):
@@ -115,7 +137,7 @@ def get_expression_tree(sentence):
             elif token == '<=>':
                 node = Bidirectional(lhs=lhs, rhs=rhs)
         else:
-            node = Argument(value=token)
+            node = Argument(symbol=token)
 
         stack.append(node)
         root = stack[0] if stack[0] else root
@@ -248,15 +270,17 @@ def to_cnf(sentence):
     root = move_not_inwards(root)
     root = move_disjunctions_inwards(root)
 
-    sentence = expression_tree_to_postfix(root)
+    print(RenderTree(root))
+
+    sentence = expression_tree_to_sentence(root)
 
     return sentence
 
 
 def main():
-    # root = to_cnf('( b11 <=> ( p12 or ( w and not p21 ) ) )')
-    root = to_cnf('a and ( b or ( d and e ) )')
-    print(RenderTree(root))
+    print(to_cnf('( b11 <=> ( p12 or ( w and not p21 ) ) )'))
+    # print(to_cnf('a and ( b or ( d and e ) )'))
+
 
 
 if __name__ == '__main__':

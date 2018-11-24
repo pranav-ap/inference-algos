@@ -18,6 +18,7 @@ class Operator(NodeMixin):
     def __init__(self, parent=None):
         self.parent = parent
         self.value = None
+        self.symbol = ''
 
     def calculate(self):
         raise NotImplementedError()
@@ -42,6 +43,7 @@ class UnaryOperator(Operator):
 class Not(UnaryOperator):
     def __init__(self, child, parent=None):
         UnaryOperator.__init__(self, child, parent=parent)
+        self.symbol = 'not'
 
     def calculate(self):
         self.value = not self.child.value
@@ -67,6 +69,7 @@ class BinaryOperator(Operator):
 class And(BinaryOperator):
     def __init__(self, lhs, rhs, parent=None):
         BinaryOperator.__init__(self, lhs, rhs, parent=parent)
+        self.symbol = 'and'
 
     def calculate(self):
         self.value = self.lhs.value and self.rhs.value
@@ -78,6 +81,7 @@ class And(BinaryOperator):
 class Or(BinaryOperator):
     def __init__(self, lhs, rhs, parent=None):
         BinaryOperator.__init__(self, lhs, rhs, parent=parent)
+        self.symbol = 'or'
 
     def calculate(self):
         self.value = self.lhs.value or self.rhs.value
@@ -89,6 +93,7 @@ class Or(BinaryOperator):
 class Implies(BinaryOperator):
     def __init__(self, lhs, rhs, parent=None):
         BinaryOperator.__init__(self, lhs, rhs, parent=parent)
+        self.symbol = '=>'
 
     def calculate(self):
         self.value = False if self.lhs.value and not self.rhs.value else True
@@ -100,6 +105,7 @@ class Implies(BinaryOperator):
 class Bidirectional(BinaryOperator):
     def __init__(self, lhs, rhs, parent=None):
         BinaryOperator.__init__(self, lhs, rhs, parent=parent)
+        self.symbol = '<=>'
 
     def calculate(self):
         self.value = self.lhs.value == self.rhs.value
@@ -115,7 +121,7 @@ class Argument(NodeMixin):
         self.value = value
 
     def __repr__(self):
-        return 'Argument {}'.format(self.value)
+        return 'Argument {}'.format(self.symbol)
 
 
 def main():
