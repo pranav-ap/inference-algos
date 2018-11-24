@@ -1,7 +1,7 @@
-from anytree import RenderTree, findall
+from anytree import RenderTree, findall, LevelOrderIter
 from copy import deepcopy
 from utils import (
-    Argument, logical_precedence, operators,
+    Operator, Argument, logical_precedence, operators,
     Not, And, Or, Implies, Bidirectional
 )
 
@@ -180,7 +180,35 @@ def eliminate_implication(root):
 
 
 def move_not_inwards(root):
-    pass
+    deathrow = get_death_row(root, Not)
+    deathrow = [n for n in deathrow if isinstance(n.child, Operator)]
+
+    for inmate in deathrow:
+        operator = inmate.child
+
+        if not isinstance(operator, Not):
+            left_child, right_child = operator.children
+            not_node_1 = Not(parent=operator, child=left_child)
+            not_node_2 = Not(parent=operator, child=right_child)
+
+        if inmate.is_root:
+            operator.parent = None
+            root = operator
+        else:
+            if inmate == inmate.parent.lhs:
+                inmate.parent.lhs = operator
+            else:
+                inmate.parent.rhs = operator
+
+            operator.parent = inmate.parent
+            inmate.parent = None
+
+    for node in LevelOrderIter(root):
+        if isinstance(node, Not) and isinstance(node.child, Not):
+            node.child.parent = node.parent
+            node.parent = None
+
+    return root
 
 
 def distribute_and_over_or(root):
@@ -189,16 +217,16 @@ def distribute_and_over_or(root):
 
 def to_cnf(root):
     root = eliminate_bidirectional(root)
-    print(RenderTree(root))
     root = eliminate_implication(root)
-    # root = move_not_inwards(root)
+    root = move_not_inwards(root)
+    print(RenderTree(root))
     # root = distribute_and_over_or(root)
 
     return root
 
 
 def main():
-    print(RenderTree(to_cnf(get_expression_tree('( b11 <=> ( p12 or not p21 ) )'))))
+    print(RenderTree(to_cnf(get_expression_tree('( b11 <=> ( p12 and not p21 ) )'))))
 
 
 if __name__ == '__main__':
