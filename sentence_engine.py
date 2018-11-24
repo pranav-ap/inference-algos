@@ -211,22 +211,47 @@ def move_not_inwards(root):
     return root
 
 
-def distribute_and_over_or(root):
-    pass
+def move_disjunctions_inwards(root):
+    deathrow = get_death_row(root, Or)
+    deathrow = [n for n in deathrow if isinstance(n.lhs, And) or isinstance(n.rhs, And)]
+
+    for inmate in deathrow:
+        child1, child2 = inmate.children
+        and_operator= child1 if isinstance(child1, And) else child2
+        other_child = child2 if child2 != and_operator else child1
+        other_child2 = deepcopy(other_child)
+        and_child1, and_child2 = and_operator.children
+
+        or1 = Or(lhs=and_child1, rhs=other_child)
+        or2 = Or(lhs=and_child2, rhs=other_child2)
+        and_node = And(parent=inmate.parent, lhs=or1, rhs=or2)
+
+        if inmate.is_root:
+            and_node.parent = None
+            root = and_node
+        else:
+            if inmate == inmate.parent.lhs:
+                inmate.parent.lhs = and_node
+            else:
+                inmate.parent.rhs = and_node
+
+            inmate.parent = None
+
+    return root
 
 
 def to_cnf(root):
     root = eliminate_bidirectional(root)
     root = eliminate_implication(root)
     root = move_not_inwards(root)
-    print(RenderTree(root))
-    # root = distribute_and_over_or(root)
+    root = move_disjunctions_inwards(root)
 
     return root
 
 
 def main():
-    print(RenderTree(to_cnf(get_expression_tree('( b11 <=> ( p12 and not p21 ) )'))))
+    root = to_cnf(get_expression_tree('( b11 <=> ( p12 and not p21 ) )'))
+    print(RenderTree(root))
 
 
 if __name__ == '__main__':
