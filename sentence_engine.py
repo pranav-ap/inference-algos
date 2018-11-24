@@ -181,26 +181,27 @@ def eliminate_implication(root):
 
 def move_not_inwards(root):
     deathrow = get_death_row(root, Not)
-    deathrow = [n for n in deathrow if isinstance(n.child, Operator)]
+    deathrow = [n for n in deathrow if isinstance(n.child, And) or isinstance(n.child, Or)]
 
     for inmate in deathrow:
         operator = inmate.child
+        operator.parent = None
 
-        if not isinstance(operator, Not):
-            left_child, right_child = operator.children
-            not_node_1 = Not(parent=operator, child=left_child)
-            not_node_2 = Not(parent=operator, child=right_child)
+        left_child, right_child = operator.children
+        not_node_1 = Not(child=left_child)
+        not_node_2 = Not(child=right_child)
+        new_op = And(lhs=not_node_1, rhs=not_node_2) if isinstance(operator, Or) else Or(lhs=not_node_1, rhs=not_node_2)
 
         if inmate.is_root:
-            operator.parent = None
-            root = operator
+            new_op.parent = None
+            root = new_op
         else:
             if inmate == inmate.parent.lhs:
-                inmate.parent.lhs = operator
+                inmate.parent.lhs = new_op
             else:
-                inmate.parent.rhs = operator
+                inmate.parent.rhs = new_op
 
-            operator.parent = inmate.parent
+            new_op.parent = inmate.parent
             inmate.parent = None
 
     for node in LevelOrderIter(root):
@@ -240,17 +241,21 @@ def move_disjunctions_inwards(root):
     return root
 
 
-def to_cnf(root):
+def to_cnf(sentence):
+    root = get_expression_tree(sentence)
     root = eliminate_bidirectional(root)
     root = eliminate_implication(root)
     root = move_not_inwards(root)
     root = move_disjunctions_inwards(root)
 
-    return root
+    sentence = expression_tree_to_postfix(root)
+
+    return sentence
 
 
 def main():
-    root = to_cnf(get_expression_tree('( b11 <=> ( p12 and not p21 ) )'))
+    # root = to_cnf('( b11 <=> ( p12 or ( w and not p21 ) ) )')
+    root = to_cnf('a and ( b or ( d and e ) )')
     print(RenderTree(root))
 
 
